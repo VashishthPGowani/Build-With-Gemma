@@ -1,0 +1,856 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PitBrain — Live Race Engineer</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f7f8fa; --surface: #ffffff;
+    --ink: #16181d; --ink-2: #4d5560; --ink-3: #8a919c;
+    --rule: #e6e8ec; --ring: rgba(22,24,29,0.08);
+    --bar-track: #e9ebef; --blue: #2a78d6; --blue-soft: #e7f0fb; --blue-ink: #174e91;
+    --good-soft: #e6f4e6; --good-ink: #1d6b1d;
+    --warn-soft: #fdf6df; --warn-ink: #7c6206;
+    --crit-soft: #fdeaea; --crit-ink: #a02c2c;
+    --crit: #d03b3b; --warn: #c98500; --good: #0ca30c;
+    --live: #d03b3b; --red-btn: #e03131;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --page: #101215; --surface: #17191d;
+      --ink: #f2f4f6; --ink-2: #b3bac2; --ink-3: #7b828c;
+      --rule: #262a30; --ring: rgba(255,255,255,0.09);
+      --bar-track: #24282e; --blue: #3987e5; --blue-soft: #16283e; --blue-ink: #9cc4f0;
+      --good-soft: #16301a; --good-ink: #8fd694;
+      --warn-soft: #362d10; --warn-ink: #ecc96a;
+      --crit-soft: #3a1a1a; --crit-ink: #eb9c9c;
+      --warn: #fab219; --red-btn: #d03131;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page: #101215; --surface: #17191d;
+    --ink: #f2f4f6; --ink-2: #b3bac2; --ink-3: #7b828c;
+    --rule: #262a30; --ring: rgba(255,255,255,0.09);
+    --bar-track: #24282e; --blue: #3987e5; --blue-soft: #16283e; --blue-ink: #9cc4f0;
+    --good-soft: #16301a; --good-ink: #8fd694;
+    --warn-soft: #362d10; --warn-ink: #ecc96a;
+    --crit-soft: #3a1a1a; --crit-ink: #eb9c9c;
+    --warn: #fab219; --red-btn: #d03131;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--ink);
+         font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 34px 24px 72px;
+          display: flex; flex-direction: column; gap: 32px; }
+
+  .head-row { display: flex; align-items: flex-start; gap: 14px; }
+  h1 { font-size: 30px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 12px; }
+  .live-tag { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: var(--live);
+              display: inline-flex; align-items: center; gap: 6px; }
+  .live-tag .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--live); }
+  .theme-btn { margin-left: auto; font: inherit; font-size: 13px; font-weight: 600;
+               color: var(--ink-2); background: var(--surface); cursor: pointer;
+               border: 1px solid var(--ring); border-radius: 999px; padding: 6px 14px;
+               display: inline-flex; align-items: center; gap: 7px; }
+  .theme-btn:hover { border-color: var(--ink-3); }
+  .app-sub { color: var(--ink-3); font-size: 13.5px; margin-top: 4px; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .live-tag .dot { animation: pulse 1.6s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
+    .fresh { animation: fade-in 0.5s ease-out both; }
+    @keyframes fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; } }
+    .bar > span { transition: width 0.6s ease; }
+  }
+
+  h2 { font-size: 20px; font-weight: 700; margin: 0 0 4px; display: flex; align-items: center; gap: 10px; }
+  h3 { font-size: 15px; font-weight: 700; margin: 0 0 6px; }
+  .disclaimer { font-size: 12px; color: var(--ink-3); margin: 0 0 14px; }
+  .divider { border: 0; border-top: 1px solid var(--rule); margin: 0; }
+  section > .body { margin-top: 14px; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 18px 28px; }
+  .stat .label { font-size: 13px; color: var(--ink-2); }
+  .stat .value { font-size: 32px; font-weight: 500; letter-spacing: -0.01em; margin-top: 2px; }
+  .stat .value small { font-size: 17px; color: var(--ink-3); }
+
+  .callout { border-radius: 8px; padding: 12px 16px; font-size: 14px; margin-top: 16px; }
+  .callout.warn { background: var(--warn-soft); color: var(--warn-ink); }
+  .callout.crit { background: var(--crit-soft); color: var(--crit-ink); }
+  .callout.good { background: var(--good-soft); color: var(--good-ink); }
+  .callout.blue { background: var(--blue-soft); color: var(--blue-ink); }
+
+  /* replay slider */
+  .replay { margin-top: 22px; }
+  .replay .r-label { font-size: 13px; color: var(--ink-2); margin-bottom: 6px; }
+  .replay input[type=range] { width: 100%; accent-color: var(--red-btn); }
+  .replay-actions { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; align-items: stretch; }
+  .analyze-btn { flex: 1; min-width: 240px; font: inherit; font-weight: 700; font-size: 14px;
+                 color: #fff; background: var(--red-btn); border: none; border-radius: 8px;
+                 padding: 12px 18px; cursor: pointer; }
+  .analyze-btn:hover { filter: brightness(1.08); }
+  .analyze-btn[disabled] { opacity: 0.55; cursor: default; }
+  .await-chip { flex: 1; min-width: 200px; display: flex; align-items: center;
+                border-radius: 8px; padding: 12px 18px; font-size: 14px;
+                background: var(--blue-soft); color: var(--blue-ink); }
+  .live-btn { font: inherit; font-weight: 700; font-size: 13px; cursor: pointer;
+              border-radius: 8px; padding: 12px 20px; border: 1px solid var(--ring);
+              background: var(--surface); color: var(--ink-2); }
+  .live-btn[aria-pressed="true"] { background: var(--red-btn); border-color: var(--red-btn); color: #fff; }
+
+  .board { display: flex; gap: 8px; flex-wrap: wrap; }
+  .board button { font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+                  color: var(--ink-2); background: var(--surface);
+                  border: 1px solid var(--ring); border-radius: 999px; padding: 5px 14px;
+                  font-variant-numeric: tabular-nums; }
+  .board button b { color: var(--ink); }
+  .board button:hover { border-color: var(--ink-3); }
+  .board button[aria-pressed="true"] { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .board button[aria-pressed="true"] b { color: #fff; }
+  button:focus-visible, input:focus-visible, details summary:focus-visible {
+    outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  .vsm-grid { display: grid; grid-template-columns: 240px 1fr; gap: 10px 36px; align-items: start; }
+  @media (max-width: 760px) { .vsm-grid { grid-template-columns: 1fr; } }
+  .car-col svg { display: block; width: 100%; max-width: 240px; height: auto; margin: 0 auto; }
+  .car-meta { display: flex; flex-direction: column; gap: 6px; margin-top: 10px;
+              font-size: 12.5px; color: var(--ink-2); }
+  .car-meta .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .car-meta .k { font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+                 text-transform: uppercase; color: var(--ink-3); }
+  .car-meta .v { font-weight: 700; color: var(--ink); display: inline-flex; align-items: center; gap: 6px; }
+  .comp-dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--ring); }
+  .gauges { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 22px 30px; }
+  .gauge .g-label { font-size: 13.5px; color: var(--ink-2); display: flex; align-items: center; gap: 7px; }
+  .gauge .g-value { font-size: 30px; font-weight: 500; margin: 2px 0 10px; }
+  .bar { height: 8px; border-radius: 999px; background: var(--bar-track); overflow: hidden; }
+  .bar > span { display: block; height: 100%; border-radius: 999px; background: var(--blue); }
+  .pill { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px;
+          border-radius: 6px; padding: 5px 12px; font-size: 12px; font-weight: 700;
+          letter-spacing: 0.06em; }
+  .pill .p-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .pill.good { background: var(--good-soft); color: var(--good-ink); }
+  .pill.good .p-dot { background: var(--good); }
+  .pill.warn { background: var(--warn-soft); color: var(--warn-ink); }
+  .pill.warn .p-dot { background: var(--warn); }
+  .pill.crit { background: var(--crit-soft); color: var(--crit-ink); }
+  .pill.crit .p-dot { background: var(--crit); }
+
+  .radio-banner { background: var(--blue-soft); color: var(--blue-ink); border-radius: 8px;
+                  padding: 13px 16px; font-size: 14.5px; }
+  .radio-row { display: flex; gap: 10px; margin-top: 14px; }
+  .radio-row input { flex: 1; font: inherit; color: var(--ink); background: var(--surface);
+                     border: 1px solid var(--ring); border-radius: 8px; padding: 9px 13px; }
+  .radio-row button { font: inherit; font-weight: 600; color: #fff; background: var(--blue);
+                      border: none; border-radius: 8px; padding: 9px 22px; cursor: pointer; }
+  .radio-row button[disabled] { opacity: 0.5; cursor: wait; }
+  .radio-log { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+  .radio-log .q { font-size: 13px; color: var(--ink-2); }
+  .radio-log .q b { color: var(--ink); }
+  .radio-log .a { font-size: 14.5px; background: var(--blue-soft); color: var(--blue-ink);
+                  border-radius: 8px; padding: 10px 14px; }
+  .radio-log .g { font-size: 12px; color: var(--ink-3); }
+
+  .rec-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 30px; }
+  @media (max-width: 820px) { .rec-grid { grid-template-columns: 1fr; } }
+  .action-pill { border-radius: 8px; padding: 14px 18px; font-size: 15px; font-weight: 700;
+                 letter-spacing: 0.08em; }
+  .action-pill.good { background: var(--good-soft); color: var(--good-ink); }
+  .action-pill.warn { background: var(--warn-soft); color: var(--warn-ink); }
+  .action-pill.crit { background: var(--crit-soft); color: var(--crit-ink); }
+  .action-pill.blue { background: var(--blue-soft); color: var(--blue-ink); }
+  .conf-label { font-size: 13px; color: var(--ink-2); margin: 16px 0 2px; }
+  .conf-value { font-size: 30px; font-weight: 500; margin-bottom: 10px; }
+  .rec-grid p { margin: 0 0 16px; font-size: 14px; color: var(--ink-2); }
+
+  .ranked { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 40px; }
+  @media (max-width: 820px) { .ranked { grid-template-columns: 1fr; } }
+  .strategy .s-label { font-size: 14px; font-weight: 600; margin-bottom: 8px;
+                       font-variant-numeric: tabular-nums; }
+
+  .checks { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 40px; font-size: 13.5px;
+            color: var(--ink-2); }
+  @media (max-width: 700px) { .checks { grid-template-columns: 1fr; } }
+  .checks div::before { content: "✓ "; color: var(--good); font-weight: 700; }
+
+  details.limits { margin-top: 12px; }
+  details.limits summary { cursor: pointer; font-size: 13px; color: var(--ink-2); }
+  details.limits .body { font-size: 13px; color: var(--ink-2); margin-top: 8px; }
+  details.limits li { margin-bottom: 4px; }
+
+  .issue { padding: 11px 0; border-top: 1px solid var(--rule);
+           display: flex; flex-direction: column; gap: 4px; }
+  .issue:first-child { border-top: none; }
+  .issue .head { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+  .issue .lapref { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 12.5px; }
+  .sev-pill { border-radius: 6px; padding: 2px 9px; font-size: 11px; font-weight: 700;
+              letter-spacing: 0.05em; }
+  .sev-pill.crit { background: var(--crit-soft); color: var(--crit-ink); }
+  .sev-pill.warn { background: var(--warn-soft); color: var(--warn-ink); }
+  .sev-pill.low  { background: var(--bar-track); color: var(--ink-2); }
+  .sys-tag { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+             color: var(--ink-3); font-weight: 700; }
+  .issue .tf { font-size: 12px; color: var(--ink-2); margin-left: auto; white-space: nowrap; }
+  .issue .desc { font-size: 13.5px; }
+  .issue .rec { font-size: 12.5px; color: var(--ink-2); }
+  .pinned-box { background: var(--crit-soft); border-radius: 8px; padding: 4px 14px 8px;
+                margin-bottom: 14px; }
+  .pinned-box .pin-head { font-size: 12px; font-weight: 700; letter-spacing: 0.06em;
+                color: var(--crit-ink); margin: 10px 0 2px; }
+  .pinned-box .issue { border-top-color: rgba(160,44,44,0.15); }
+  .ticker { max-height: 400px; overflow-y: auto; }
+  .empty { color: var(--ink-3); font-size: 13.5px; padding: 6px 0; }
+
+  .chart-box svg { display: block; width: 100%; height: auto; }
+  .tick { fill: var(--ink-3); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12.5px;
+            color: var(--ink-2); margin-top: 10px; }
+  .legend .key { display: inline-flex; align-items: center; gap: 6px; }
+  footer { color: var(--ink-3); font-size: 12.5px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="fresh">
+    <div class="head-row">
+      <h1>🏎️ PitBrain <span class="live-tag"><span class="dot"></span>LIVE</span></h1>
+      <button class="theme-btn" id="theme-btn" type="button" aria-label="Toggle color theme">🌙 Dark</button>
+    </div>
+    <div class="app-sub" id="app-sub">Gemma-powered Formula 1 race engineer — waiting for session…</div>
+
+    <div class="replay">
+      <div class="r-label">Replay race lap — <b id="view-label">LIVE</b></div>
+      <input type="range" id="lap-slider" min="1" max="1" value="1" step="1"
+             aria-label="Select a lap to review">
+      <div class="replay-actions">
+        <button class="analyze-btn" id="analyze-btn" type="button">🔮 Analyze current lap with Gemma</button>
+        <div class="await-chip" id="analyze-chip" hidden></div>
+        <button class="live-btn" id="live-btn" type="button" aria-pressed="true">🔴 LIVE</button>
+      </div>
+    </div>
+
+    <div class="stats" id="stats" style="margin-top:24px"></div>
+    <div id="headline"></div>
+  </header>
+
+  <hr class="divider">
+
+  <section>
+    <h2>🏁 Running Order</h2>
+    <p class="disclaimer">Click a car — every panel switches to that car's own analysis.</p>
+    <div class="board" id="board"></div>
+  </section>
+
+  <hr class="divider">
+
+  <section>
+    <h2>📡 Live Race Intelligence</h2>
+    <div class="stats body" id="intel"></div>
+  </section>
+
+  <hr class="divider">
+
+  <section>
+    <h2>🏎️ Vehicle Systems Monitor</h2>
+    <p class="disclaimer">Derived from live FastF1 timing (tyre age, pace trend, speed trap, consistency) — not official telemetry. Per-corner sensors aren't in the feed, so all four wheels show the fitted set's live health.</p>
+    <div class="vsm-grid">
+      <div class="car-col" id="car-diagram"></div>
+      <div class="gauges" id="gauges"></div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <section>
+    <h2>📻 Live Race Engineer Radio</h2>
+    <div class="radio-banner" id="radio-banner">Waiting for the first analyzed lap…</div>
+    <form id="ask-form" class="radio-row">
+      <input id="ask-input" type="text" autocomplete="off"
+             placeholder="Ask the pit wall — answers are spoken aloud"
+             aria-label="Question for the race engineer">
+      <button id="ask-btn" type="submit">Ask</button>
+    </form>
+    <div id="ask-log" class="radio-log"></div>
+  </section>
+
+  <hr class="divider">
+
+  <section>
+    <div class="rec-grid">
+      <div>
+        <h2>🧠 Recommended Action</h2>
+        <div class="body">
+          <div class="action-pill blue" id="action">AWAITING GEMMA</div>
+          <div class="conf-label">Confidence</div>
+          <div class="conf-value" id="conf">0%</div>
+          <div class="bar"><span id="conf-bar" style="width:0%"></span></div>
+        </div>
+      </div>
+      <div>
+        <h2>Gemma Reasoning</h2>
+        <div class="body">
+          <p id="reasoning">Gemma has not analyzed the currently selected lap.</p>
+          <h3>Strongest counterargument</h3>
+          <p id="counter">No strategy comparison is available yet.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <section>
+    <h2>📊 Ranked Strategies</h2>
+    <div class="body" id="ranked-wrap">
+      <div class="callout blue" id="ranked-empty">Run the Gemma analysis to rank the available strategies.</div>
+      <div class="ranked" id="ranked"></div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <section>
+    <h2>🔍 Decision Context</h2>
+    <div class="stats body" id="context"></div>
+  </section>
+
+  <hr class="divider">
+
+  <section>
+    <h2>👁️ AI Monitoring</h2>
+    <div class="checks body">
+      <div>Position changes</div>
+      <div>Multi-lap pace trend</div>
+      <div>Tyre age vs compound limit</div>
+      <div>Speed-trap drop-off</div>
+      <div>Evolving field benchmark</div>
+      <div>Per-lap Gemma risk scan</div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <section>
+    <h2>⚠️ Change Decision If</h2>
+    <div class="callout blue" id="change-if">Gemma has not supplied decision-change conditions for this lap.</div>
+    <details class="limits">
+      <summary>Missing information and model limitations</summary>
+      <div class="body"><ul>
+        <li>Gaps between cars are lap-time pace deltas, not cumulative race gaps.</li>
+        <li>Telemetry is timing-derived (tyre age, sectors, speed traps) — no engine temps or brake data.</li>
+        <li>Non-featured cars are auto-analyzed on a sampled cadence; use the replay slider + Analyze button for any missing lap.</li>
+        <li>Strategy ranking is a deterministic blend of Gemma's per-lap verdicts and tyre/pace signals.</li>
+      </ul></div>
+    </details>
+  </section>
+
+  <hr class="divider">
+
+  <section>
+    <h2>📈 Lap Trace</h2>
+    <div class="chart-box body" id="chart-box"></div>
+    <div class="legend" id="legend"></div>
+  </section>
+
+  <hr class="divider">
+
+  <section>
+    <h2>🚨 Issue Ticker</h2>
+    <div class="body">
+      <div id="pinned"></div>
+      <div class="ticker" id="ticker"></div>
+    </div>
+  </section>
+
+  <footer>PitBrain · per-lap risk, chase &amp; maintain coaching, and radio answers produced live by Gemma on Spur from FastF1 data.</footer>
+</div>
+
+<script>
+(() => {
+  // ---- theme toggle ----
+  const root = document.documentElement, themeBtn = document.getElementById("theme-btn");
+  const savedTheme = localStorage.getItem("pb-theme");
+  if (savedTheme) root.dataset.theme = savedTheme;
+  const effTheme = () => root.dataset.theme ||
+    (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  const paintThemeBtn = () =>
+    themeBtn.textContent = effTheme() === "dark" ? "☀️ Light" : "🌙 Dark";
+  themeBtn.addEventListener("click", () => {
+    root.dataset.theme = effTheme() === "dark" ? "light" : "dark";
+    localStorage.setItem("pb-theme", root.dataset.theme);
+    paintThemeBtn();
+  });
+  paintThemeBtn();
+
+  const esc = s => String(s ?? "").replace(/[&<>"]/g,
+    c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const fmtT = s => s == null ? "—" :
+    (s >= 60 ? Math.floor(s / 60) + ":" + (s % 60).toFixed(3).padStart(6, "0") : s.toFixed(3) + " s");
+  const TYRE_LIMIT = { SOFT: 18, MEDIUM: 28, HARD: 38, INTERMEDIATE: 25, WET: 20 };
+  const SEV_RANK = { critical: 0, warning: 1, low: 2 };
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const sevPill = sev => {
+    const cls = sev === "critical" ? "crit" : sev === "warning" ? "warn" : "low";
+    return `<span class="sev-pill ${cls}">${sev.toUpperCase()}</span>`;
+  };
+  const issueHtml = (i, lapref, cls) =>
+    `<div class="issue${cls ? " " + cls : ""}"><div class="head">` +
+    `${lapref ? `<span class="lapref">L${lapref}</span>` : ""}${sevPill(i.sev)}` +
+    `<span class="sys-tag">${esc(i.sys)}</span><span class="tf">${esc(i.tf)}</span></div>` +
+    `<div class="desc">${esc(i.d)}</div><div class="rec">→ ${esc(i.rec)}</div></div>`;
+  function urgency(tf) {
+    tf = String(tf || "").toLowerCase();
+    if (/immediate|right now|this lap|^box/.test(tf)) return 0;
+    if (/next lap/.test(tf)) return 1;
+    const m = tf.match(/(\d+)/);
+    if (m) return +m[1] * (/second|s\b/.test(tf) && !/lap/.test(tf) ? 0.02 : 1);
+    if (/ongoing|monitor/.test(tf)) return 99;
+    return 9;
+  }
+
+  // ---- view state ----
+  let SELECTED = null, lastSig = "", lastState = null;
+  const view = { live: true, lap: 1 };
+  const requested = new Set();
+
+  function signals(car, upto) {
+    const laps = upto ? car.laps.filter(l => l.n <= upto) : car.laps;
+    const analyses = upto ? car.analyses.filter(a => a.n <= upto) : car.analyses;
+    const clean = laps.filter(l => l.t != null && l.clean);
+    const last = laps.filter(l => l.t != null).slice(-1)[0] || null;
+    const latest = analyses[analyses.length - 1] || null;
+    const viewAn = upto ? analyses.find(a => a.n === upto) || null : latest;
+    const last3 = clean.slice(-3).map(l => l.t);
+    let trend = 0;
+    if (last3.length === 3) trend = (last3[2] - last3[0]) / 2;
+    const trendLabel = trend > 0.25 ? "DECLINING" : trend < -0.1 ? "IMPROVING" : "STABLE";
+    const lastClean = clean[clean.length - 1];
+    const limit = lastClean ? (TYRE_LIMIT[lastClean.comp] || 30) : 30;
+    const tyre = lastClean ? clamp(Math.round(100 * (1 - (lastClean.life || 0) / limit)), 0, 100) : null;
+    const stintSpds = lastClean
+      ? clean.filter(l => l.stint === lastClean.stint && l.spd).map(l => l.spd) : [];
+    const spd = lastClean && lastClean.spd && stintSpds.length
+      ? clamp(Math.round(100 * lastClean.spd / Math.max(...stintSpds)), 0, 100) : null;
+    let consist = null;
+    if (last3.length === 3) {
+      const m = last3.reduce((a, b) => a + b) / 3;
+      const sd = Math.sqrt(last3.reduce((a, b) => a + (b - m) ** 2, 0) / 3);
+      consist = clamp(Math.round(100 - sd * 45), 0, 100);
+    }
+    const pace = trendLabel === "IMPROVING" ? 92 : trendLabel === "STABLE" ? 78
+               : clamp(Math.round(78 - trend * 90), 5, 60);
+    const threat = latest ? (latest.st === "critical" ? "HIGH"
+                 : latest.st === "warning" ? "MEDIUM" : "LOW") : "—";
+    const pitted = clean.some(l => (l.stint || 1) > 1);
+    return { laps, analyses, clean, last, latest, viewAn, trend, trendLabel,
+             tyre, spd, consist, pace, threat, lastClean, pitted, last3 };
+  }
+
+  function pillFor(v, warm, bad, names) {
+    const [ex, gd, wr, cr] = names || ["EXCELLENT", "GOOD", "WORN", "CRITICAL"];
+    if (v == null) return ["—", "warn"];
+    if (v >= 85) return [ex, "good"];
+    if (v >= warm) return [gd, "good"];
+    if (v >= bad) return [wr, "warn"];
+    return [cr, "crit"];
+  }
+
+  function strategy(sig, mode) {
+    const s = { HOLD: 50, PUSH: 50, CONSERVE: 40, "PIT NOW": 15 };
+    if (mode === "maintain") { s.HOLD += 35; s.CONSERVE += 10; }
+    else { s.PUSH += 25; s.HOLD -= 5; }
+    if (sig.tyre != null) {
+      if (sig.tyre < 25) { s["PIT NOW"] += 55; s.PUSH -= 25; s.CONSERVE += 15; }
+      else if (sig.tyre < 45) { s["PIT NOW"] += 25; s.CONSERVE += 20; s.PUSH -= 10; }
+    }
+    if (sig.trendLabel === "DECLINING") { s.CONSERVE += 15; s["PIT NOW"] += 10; s.PUSH -= 15; }
+    if (sig.trendLabel === "IMPROVING") { s.PUSH += 15; }
+    if (sig.viewAn && sig.viewAn.st === "critical") { s["PIT NOW"] += 25; s.HOLD -= 15; }
+    for (const k in s) s[k] = clamp(Math.round(s[k]), 5, 95);
+    const ranked = Object.entries(s).sort((a, b) => b[1] - a[1]);
+    const conf = clamp(45 + (ranked[0][1] - ranked[1][1]), 50, 95);
+    return { ranked, conf };
+  }
+  const COUNTER = {
+    HOLD: "PUSH could be used to create a larger gap, although the current race state does not yet require it.",
+    PUSH: "CONSERVE would protect tyre life if degradation arrives earlier than expected.",
+    CONSERVE: "PUSH is available if a rival enters the pit window and track position is at risk.",
+    "PIT NOW": "HOLD keeps track position if the tyres can be nursed to a cheaper stop window.",
+  };
+
+  const COMPOUND_COLOR = { SOFT: "#e10600", MEDIUM: "#f0c419", HARD: "#b7bec7",
+                           INTERMEDIATE: "#43b02a", WET: "#0067ad" };
+  function carDiagram(sig) {
+    const comp = sig.lastClean ? (sig.lastClean.comp || "UNKNOWN") : "UNKNOWN";
+    const ring = COMPOUND_COLOR[comp] || "#9aa3ad";
+    const h = sig.tyre;
+    const hc = h == null ? "var(--ink-3)" : h >= 55 ? "var(--good)" : h >= 30 ? "var(--warn)" : "var(--crit)";
+    const hTxt = h == null ? "—" : h + "%";
+    const life = sig.lastClean ? (sig.lastClean.life ?? "—") : "—";
+    const wheel = (x, y, label) =>
+      `<g><rect x="${x}" y="${y}" width="54" height="76" rx="15" fill="#23262b"
+         stroke="${ring}" stroke-width="4"/>` +
+      `<text x="${x + 27}" y="${y + 32}" text-anchor="middle" fill="#fff"
+         font-size="13" font-weight="700">${label}</text>` +
+      `<text x="${x + 27}" y="${y + 55}" text-anchor="middle" fill="${hc}"
+         font-size="14" font-weight="700">${hTxt}</text></g>`;
+    const svg =
+      `<svg viewBox="0 0 300 440" role="img" aria-label="Car tyre status diagram">` +
+      `<rect x="96" y="8" width="108" height="14" rx="4" fill="none" stroke="var(--blue)" stroke-width="2.5"/>` +
+      `<path d="M150 26 L166 62 L172 118 L194 148 L194 296 L176 326 L176 384 L124 384 L124 326 L106 296 L106 148 L128 118 L134 62 Z"
+         fill="none" stroke="var(--blue)" stroke-width="2.5" stroke-linejoin="round"/>` +
+      `<rect x="106" y="392" width="88" height="16" rx="4" fill="none" stroke="var(--blue)" stroke-width="2.5"/>` +
+      `<circle cx="150" cy="182" r="15" fill="none" stroke="var(--blue)" stroke-width="2"/>` +
+      `<line x1="80" y1="156" x2="106" y2="156" stroke="var(--blue)" stroke-width="2"/>` +
+      `<line x1="194" y1="156" x2="220" y2="156" stroke="var(--blue)" stroke-width="2"/>` +
+      `<line x1="80" y1="336" x2="124" y2="336" stroke="var(--blue)" stroke-width="2"/>` +
+      `<line x1="176" y1="336" x2="220" y2="336" stroke="var(--blue)" stroke-width="2"/>` +
+      wheel(26, 118, "FL") + wheel(220, 118, "FR") +
+      wheel(26, 298, "RL") + wheel(220, 298, "RR") +
+      `</svg>`;
+    const meta =
+      `<div class="car-meta">` +
+      `<div class="row"><span class="k">Compound</span><span class="v">` +
+      `<span class="comp-dot" style="background:${ring}"></span>${esc(comp)}</span></div>` +
+      `<div class="row"><span class="k">Tyre age</span><span class="v">${life} laps</span></div>` +
+      `<div class="row"><span class="k">Set health</span><span class="v" style="color:${hc}">${hTxt}</span></div>` +
+      `</div>`;
+    return svg + meta;
+  }
+
+  function topPinned(car) {
+    const open = [];
+    for (const a of car.analyses.slice(-5)) for (const i of a.issues)
+      if (i.sev === "critical" || (i.sev === "warning" && urgency(i.tf) <= 3))
+        open.push({ ...i, n: a.n, u: urgency(i.tf) });
+    open.sort((x, y) => (SEV_RANK[x.sev] - SEV_RANK[y.sev]) || (x.u - y.u) || (y.n - x.n));
+    return open;
+  }
+
+  function nextReview(S, drv, curLap) {
+    if (drv === S.meta.featured) return "next lap";
+    const every = S.meta.analyze_every || 3;
+    const stagger = [...drv].reduce((a, c) => a + c.charCodeAt(0), 0) % every;
+    let n = curLap + 1;
+    while (n % every !== stagger) n++;
+    return "Lap " + n;
+  }
+
+  function renderChart(car, S, viewLap) {
+    const laps = car.laps.filter(l => l.t != null);
+    const box = document.getElementById("chart-box");
+    if (!laps.length) { box.innerHTML = `<div class="empty">No laps yet.</div>`; return; }
+    const W = 960, H = 290, mL = 54, mR = 14, mT = 20, mB = 30;
+    const pw = W - mL - mR, ph = H - mT - mB;
+    const xMax = Math.max(S.meta.total_laps || 0, S.current_lap, 2);
+    const yv = laps.map(l => l.t).concat(S.benchmark ? [S.benchmark.time] : []);
+    let y0 = Math.min(...yv), y1 = Math.max(...yv);
+    const pad = Math.max((y1 - y0) * 0.08, 0.5); y0 -= pad; y1 += pad;
+    const X = n => mL + (n - 1) / (xMax - 1) * pw;
+    const Y = t => mT + (y1 - t) / (y1 - y0) * ph;
+    const an = Object.fromEntries(car.analyses.map(a => [a.n, a]));
+    const SC = { critical: "var(--crit)", warning: "var(--warn)", ok: "var(--good)" };
+
+    let g = "";
+    const step = Math.max(5, Math.ceil((y1 - y0) / 5 / 5) * 5);
+    for (let t = Math.ceil(y0 / step) * step; t < y1; t += step)
+      g += `<line x1="${mL}" x2="${mL + pw}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--rule)"/>` +
+           `<text x="${mL - 8}" y="${Y(t) + 4}" text-anchor="end" class="tick">${t}s</text>`;
+    for (let n = 5; n <= xMax; n += 5)
+      g += `<text x="${X(n)}" y="${H - 8}" text-anchor="middle" class="tick">${n}</text>`;
+    g += `<line x1="${mL}" x2="${mL + pw}" y1="${mT + ph}" y2="${mT + ph}" stroke="var(--bar-track)"/>`;
+    if (viewLap)
+      g += `<line x1="${X(viewLap)}" x2="${X(viewLap)}" y1="${mT}" y2="${mT + ph}"
+            stroke="var(--red-btn)" stroke-width="1.5" opacity="0.7"/>`;
+    if (S.benchmark)
+      g += `<line x1="${mL}" x2="${mL + pw}" y1="${Y(S.benchmark.time)}" y2="${Y(S.benchmark.time)}" stroke="var(--ink-3)"/>` +
+           `<text x="${mL + pw}" y="${Y(S.benchmark.time) - 6}" text-anchor="end" class="tick">` +
+           `${esc(S.benchmark.driver)} ${fmtT(S.benchmark.time)}</text>`;
+    let d = "", pen = false, prevN = 0;
+    for (const l of car.laps) {
+      if (l.t == null) { pen = false; continue; }
+      if (l.n !== prevN + 1) pen = false;
+      d += (pen ? " L" : " M") + X(l.n).toFixed(1) + " " + Y(l.t).toFixed(1);
+      pen = true; prevN = l.n;
+    }
+    g += `<path d="${d.trim()}" fill="none" stroke="var(--blue)" stroke-width="2"
+           stroke-linejoin="round" stroke-linecap="round"/>`;
+    for (const l of laps) {
+      const a = an[l.n]; if (!a) continue;
+      const c = SC[a.st] || SC.ok, x = X(l.n), y = Y(l.t), r = 5.5;
+      const ring = `stroke="var(--surface)" stroke-width="2"`;
+      g += a.st === "critical"
+        ? `<path d="M${x} ${y - r - 1} L${x + r} ${y + r * 0.8} L${x - r} ${y + r * 0.8} Z" fill="${c}" ${ring}/>`
+        : a.st === "warning"
+        ? `<path d="M${x} ${y - r - 1} L${x + r + 1} ${y} L${x} ${y + r + 1} L${x - r - 1} ${y} Z" fill="${c}" ${ring}/>`
+        : `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" ${ring}/>`;
+    }
+    box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img"
+      aria-label="Lap times with per-lap model status">${g}</svg>`;
+  }
+
+  function render(S) {
+    lastState = S;
+    const F = S.meta.featured;
+    if (!SELECTED || !S.cars[SELECTED]) SELECTED = F;
+    const car = S.cars[SELECTED] || { laps: [], analyses: [] };
+    const maxLap = car.laps.length ? Math.max(...car.laps.map(l => l.n)) : 1;
+    if (view.live) view.lap = maxLap;
+    view.lap = clamp(view.lap, 1, maxLap);
+    const sig = signals(car, view.lap);
+    const viewAn = sig.viewAn;
+    const viewLapRec = car.laps.find(l => l.n === view.lap);
+
+    // header + slider
+    document.getElementById("app-sub").textContent =
+      `Gemma-powered Formula 1 race engineer · ${S.meta.year} ${S.meta.event} · car ${SELECTED} · ${S.meta.model}` +
+      (S.pending ? ` · analyzing ${S.pending} lap(s)…` : "");
+    const slider = document.getElementById("lap-slider");
+    slider.max = maxLap;
+    if (view.live) slider.value = maxLap;
+    document.getElementById("view-label").textContent =
+      view.live ? `LIVE (lap ${maxLap})` : `lap ${view.lap} of ${maxLap}`;
+    document.getElementById("live-btn").setAttribute("aria-pressed", view.live);
+
+    // analyze button / chip
+    const aBtn = document.getElementById("analyze-btn");
+    const aChip = document.getElementById("analyze-chip");
+    const key = SELECTED + ":" + view.lap;
+    if (viewAn) {
+      aBtn.hidden = true; aChip.hidden = false;
+      aChip.textContent = `Lap ${view.lap} analyzed — verdict ${viewAn.st.toUpperCase()}`;
+    } else if (requested.has(key)) {
+      aBtn.hidden = true; aChip.hidden = false;
+      aChip.textContent = "Awaiting analysis…";
+    } else if (viewLapRec && !viewLapRec.clean) {
+      aBtn.hidden = true; aChip.hidden = false;
+      aChip.textContent = `Lap ${view.lap} not analyzable (pit / neutralized)`;
+    } else {
+      aBtn.hidden = false; aChip.hidden = true;
+      aBtn.textContent = `🔮 Analyze lap ${view.lap} of ${SELECTED} with Gemma`;
+    }
+
+    // stats
+    const bestT = sig.clean.length ? Math.min(...sig.clean.map(l => l.t)) : null;
+    const gap = bestT != null && S.benchmark ? bestT - S.benchmark.time : null;
+    document.getElementById("stats").innerHTML = [
+      ["Lap", `${view.lap}<small> / ${S.meta.total_laps || "?"}</small>`],
+      ["Position", sig.last && sig.last.pos ? "P" + sig.last.pos : "—"],
+      ["Gap to field best", gap == null ? "—" : (gap >= 0 ? "+" : "") + gap.toFixed(3) + `<small> s</small>`],
+      ["Pace Trend", sig.trendLabel],
+      ["Threat Level", sig.threat],
+    ].map(([l, v]) => `<div class="stat"><div class="label">${l}</div><div class="value">${v}</div></div>`).join("");
+
+    const pin0 = topPinned(car)[0];
+    document.getElementById("headline").innerHTML = pin0
+      ? `<div class="callout ${pin0.sev === "critical" ? "crit" : "warn"}">${esc(pin0.d)}</div>`
+      : (sig.latest ? `<div class="callout good">No open threats — running clean.</div>` : "");
+
+    document.getElementById("board").innerHTML = S.leaderboard.map(r =>
+      `<button data-d="${esc(r.d)}" aria-pressed="${r.d === SELECTED}">P${r.p} <b>${esc(r.d)}</b></button>`
+    ).join("");
+
+    // live race intelligence
+    const myPos = sig.last && sig.last.pos;
+    const rivalRow = myPos === 1
+      ? S.leaderboard.find(r => r.p === 2)
+      : S.leaderboard.find(r => r.p === (myPos || 99) - 1);
+    let paceVs = "—";
+    if (rivalRow && sig.last && sig.last.t) {
+      const rl = (S.cars[rivalRow.d] || { laps: [] }).laps.find(l => l.n === sig.last.n);
+      if (rl && rl.t) {
+        const dv = sig.last.t - rl.t;
+        paceVs = (dv >= 0 ? "+" : "") + dv.toFixed(3) + `<small> s</small>`;
+      }
+    }
+    document.getElementById("intel").innerHTML = [
+      ["Leader Status", myPos === 1 ? "LEADING" : myPos ? "CHASING" : "—"],
+      ["Closest Rival", rivalRow ? esc(rivalRow.d) : "—"],
+      ["Last-lap Pace vs Rival", myPos === 1 && !rivalRow ? "Race Leader" : paceVs],
+      ["Next Auto Review", nextReview(S, SELECTED, view.lap)],
+    ].map(([l, v]) => `<div class="stat"><div class="label">${l}</div><div class="value">${v}</div></div>`).join("");
+
+    // gauges
+    const gauges = [
+      ["🛞 Tyres", sig.tyre, pillFor(sig.tyre, 55, 30, ["OPTIMAL", "GOOD", "WORN", "CRITICAL"]),
+        sig.lastClean ? `${esc(sig.lastClean.comp || "")} · ${sig.lastClean.life ?? "—"} laps old` : ""],
+      ["⏱️ Pace", sig.pace, sig.trendLabel === "DECLINING" ? ["DEGRADING", "warn"]
+        : pillFor(sig.pace, 55, 30, ["OPTIMAL", "GOOD", "WORN", "CRITICAL"]),
+        `trend ${sig.trendLabel.toLowerCase()}`],
+      ["⚡ Top Speed", sig.spd, pillFor(sig.spd, 90, 80, ["HEALTHY", "HEALTHY", "DOWN", "DOWN"]),
+        sig.lastClean && sig.lastClean.spd ? `${sig.lastClean.spd} km/h trap` : "vs stint best"],
+      ["🎯 Consistency", sig.consist, pillFor(sig.consist, 60, 35, ["OPTIMAL", "GOOD", "VARIABLE", "ERRATIC"]),
+        "last 3 laps"],
+    ];
+    document.getElementById("car-diagram").innerHTML = carDiagram(sig);
+    document.getElementById("gauges").innerHTML = gauges.map(([label, v, [pl, pc], note]) =>
+      `<div class="gauge"><div class="g-label">${label}</div>` +
+      `<div class="g-value">${v == null ? "—" : v + "%"}</div>` +
+      `<div class="bar"><span style="width:${v ?? 0}%"></span></div>` +
+      `<span class="pill ${pc}"><span class="p-dot"></span>${pl}</span>` +
+      `<div class="disclaimer" style="margin:8px 0 0">${note}</div></div>`).join("");
+
+    // radio banner
+    const c = viewAn && viewAn.coach;
+    document.getElementById("radio-banner").textContent = c
+      ? `${c.gap} ${c.sugg[0] || ""}`
+      : viewAn ? "Analysis available — no coaching text for this lap."
+      : view.live ? `Waiting for ${SELECTED}'s next analyzed lap…`
+      : `Select a lap and click Analyze with Gemma.`;
+
+    // recommended action + reasoning (for the VIEWED lap)
+    const act = document.getElementById("action");
+    if (viewAn) {
+      const { ranked, conf } = strategy(sig, viewAn.mode);
+      const top = ranked[0][0];
+      act.textContent = top;
+      act.className = "action-pill " + (top === "PIT NOW" ? "crit" : top === "CONSERVE" ? "warn" : "good");
+      document.getElementById("conf").textContent = conf + "%";
+      document.getElementById("conf-bar").style.width = conf + "%";
+      document.getElementById("reasoning").textContent =
+        (viewAn.mode === "maintain" ? `${SELECTED} is leading; comparing against their own first clean lap. ` : "") +
+        (c ? `${c.gap} ${c.sugg[0] || ""}` : "Risk scan only for this lap.");
+      document.getElementById("counter").textContent = COUNTER[top];
+      document.getElementById("ranked-empty").hidden = true;
+      document.getElementById("ranked").innerHTML = ranked.map(([k, v], i) =>
+        `<div class="strategy"><div class="s-label">${i + 1}. ${k} — ${v}</div>` +
+        `<div class="bar"><span style="width:${v}%"></span></div></div>`).join("");
+      document.getElementById("change-if").className = "callout warn";
+      document.getElementById("change-if").textContent =
+        top === "PIT NOW"
+          ? "Reconsider if a safety car is likely soon or the tyre warning clears on the next lap."
+          : "Reconsider if tyre health drops below 30%, the pace trend turns DECLINING, or the risk scan goes CRITICAL.";
+    } else {
+      act.textContent = "AWAITING GEMMA"; act.className = "action-pill blue";
+      document.getElementById("conf").textContent = "0%";
+      document.getElementById("conf-bar").style.width = "0%";
+      document.getElementById("reasoning").textContent = "Gemma has not analyzed the currently selected lap.";
+      document.getElementById("counter").textContent = "No strategy comparison is available yet.";
+      document.getElementById("ranked-empty").hidden = false;
+      document.getElementById("ranked").innerHTML = "";
+      document.getElementById("change-if").className = "callout blue";
+      document.getElementById("change-if").textContent =
+        "Gemma has not supplied decision-change conditions for this lap.";
+    }
+
+    // decision context (viewed lap)
+    const curT = viewLapRec && viewLapRec.t;
+    const prior = sig.clean.filter(l => l.n < view.lap).slice(-3).map(l => l.t);
+    const ref = prior.length === 3 ? prior.reduce((a, b) => a + b) / 3 : null;
+    const deltaMs = curT != null && ref != null ? Math.round((curT - ref) * 1000) : null;
+    document.getElementById("context").innerHTML = [
+      ["Current Lap Time", curT != null ? fmtT(curT) : "—"],
+      ["Three-Lap Reference", ref != null ? fmtT(ref) : "—"],
+      ["Pace Delta", deltaMs != null ? `${deltaMs >= 0 ? "+" : ""}${deltaMs}<small> ms</small>` : "—"],
+      ["Pit Stop Completed", sig.pitted ? "YES" : "NO"],
+    ].map(([l, v]) => `<div class="stat"><div class="label">${l}</div><div class="value">${v}</div></div>`).join("");
+
+    renderChart(car, S, view.live ? null : view.lap);
+    document.getElementById("legend").innerHTML =
+      `<span class="key"><svg width="18" height="14"><path d="M1 7 H17" stroke="var(--blue)" stroke-width="2"/></svg>${esc(SELECTED)} lap time</span>` +
+      `<span class="key"><svg width="18" height="14"><path d="M1 7 H17" stroke="var(--ink-3)"/></svg>field benchmark</span>` +
+      `<span class="key"><svg width="18" height="14"><path d="M9 2 L15.5 12 L2.5 12 Z" fill="var(--crit)"/></svg>Critical</span>` +
+      `<span class="key"><svg width="18" height="14"><path d="M9 2 L15 7 L9 12 L3 7 Z" fill="var(--warn)"/></svg>Warning</span>` +
+      `<span class="key"><svg width="18" height="14"><circle cx="9" cy="7" r="5" fill="var(--good)"/></svg>Clear</span>`;
+
+    const pins = topPinned(car);
+    document.getElementById("pinned").innerHTML = pins.length
+      ? `<div class="pinned-box"><div class="pin-head">📌 Act before it strikes</div>` +
+        pins.slice(0, 3).map(i => issueHtml(i, i.n)).join("") + `</div>` : "";
+    const items = [];
+    for (const a of [...car.analyses].reverse())
+      for (const i of a.issues) items.push(issueHtml(i, a.n));
+    document.getElementById("ticker").innerHTML =
+      items.length ? items.slice(0, 40).join("") : `<div class="empty">No issues yet.</div>`;
+  }
+
+  // ---- interactions ----
+  document.getElementById("board").addEventListener("click", e => {
+    const b = e.target.closest("button[data-d]"); if (!b) return;
+    SELECTED = b.dataset.d; view.live = true; lastSig = ""; tick();
+  });
+  document.getElementById("lap-slider").addEventListener("input", e => {
+    view.live = false; view.lap = +e.target.value;
+    if (lastState) render(lastState);
+  });
+  document.getElementById("live-btn").addEventListener("click", () => {
+    view.live = true; lastSig = ""; tick();
+  });
+  document.getElementById("analyze-btn").addEventListener("click", async () => {
+    const key = SELECTED + ":" + view.lap;
+    requested.add(key);
+    if (lastState) render(lastState);
+    try {
+      const r = await fetch("/api/analyze", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ driver: SELECTED, lap_number: view.lap }),
+      });
+      if (!r.ok) {
+        requested.delete(key);
+        const chip = document.getElementById("analyze-chip");
+        chip.hidden = false; document.getElementById("analyze-btn").hidden = true;
+        chip.textContent = (await r.json()).detail || "Analysis request failed.";
+      }
+    } catch { requested.delete(key); }
+    lastSig = "";
+  });
+
+  async function tick() {
+    let S;
+    try { S = await (await fetch("/api/state")).json(); } catch { return; }
+    if (!S.meta.event) return;
+    const sig = `${SELECTED}|${view.live}|${view.lap}|${S.current_lap}|${S.pending}|` +
+      Object.values(S.cars).reduce((n, c) => n + c.analyses.length, 0);
+    if (sig === lastSig) return;
+    lastSig = sig;
+    render(S);
+  }
+
+  // ---- radio Q&A ----
+  const history = [];
+  const form = document.getElementById("ask-form");
+  const input = document.getElementById("ask-input");
+  const btn = document.getElementById("ask-btn");
+  const log = document.getElementById("ask-log");
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    const q = input.value.trim();
+    if (!q || btn.disabled) return;
+    btn.disabled = true;
+    const row = document.createElement("div");
+    row.className = "fresh";
+    row.innerHTML = `<div class="q"><b>You → ${esc(SELECTED)}:</b> ${esc(q)}</div><div class="a">…</div>`;
+    log.prepend(row);
+    try {
+      const r = await fetch("/api/ask", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: q, driver: SELECTED, history: history.slice(-6) }),
+      });
+      if (!r.ok) throw new Error((await r.json()).detail || r.status);
+      const res = await r.json();
+      row.querySelector(".a").textContent = res.answer;
+      row.insertAdjacentHTML("beforeend",
+        `<div class="g">${esc(res.driver)} · lap ${res.grounded_on.lap}` +
+        `${res.grounded_on.position ? " · P" + res.grounded_on.position : ""}` +
+        ` · ${res.grounded_on.open_issues} open issue(s)</div>`);
+      history.push({ role: "driver", content: q }, { role: "engineer", content: res.answer });
+      if ("speechSynthesis" in window)
+        speechSynthesis.speak(new SpeechSynthesisUtterance(res.answer));
+    } catch (err) {
+      row.querySelector(".a").textContent = "Radio failure: " + err.message;
+    } finally {
+      btn.disabled = false; input.value = ""; input.focus();
+    }
+  });
+
+  tick();
+  setInterval(tick, 2000);
+})();
+</script>
+</body>
+</html>

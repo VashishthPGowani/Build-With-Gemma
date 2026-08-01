@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PitBrain Review — 2025 British Grand Prix · full field</title>
+</head>
+<body>
+<style>
+  :root { color-scheme: light;
+    --page:#f9f9f7; --surface:#fcfcfb; --ink:#0b0b0b; --ink-2:#52514e; --ink-3:#898781;
+    --grid:#e1e0d9; --axis:#c3c2b7; --ring:rgba(11,11,11,0.10);
+    --crit:#d03b3b; --warn:#fab219; --good:#0ca30c; --series:#2a78d6; }
+  @media (prefers-color-scheme: dark) { :root:where(:not([data-theme="light"])) {
+    color-scheme: dark; --page:#0d0d0d; --surface:#1a1a19; --ink:#fff; --ink-2:#c3c2b7;
+    --ink-3:#898781; --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,0.10); --series:#3987e5; } }
+  :root[data-theme="dark"] {
+    color-scheme: dark; --page:#0d0d0d; --surface:#1a1a19; --ink:#fff; --ink-2:#c3c2b7;
+    --ink-3:#898781; --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,0.10); --series:#3987e5; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--page); color:var(--ink);
+         font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  .wrap { max-width:1000px; margin:0 auto; padding:28px 20px 64px; }
+  .eyebrow { font-size:11px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-3); }
+  h1 { font-size:26px; margin:2px 0 4px; letter-spacing:-0.01em; }
+  .sub { color:var(--ink-2); font-size:14px; margin-bottom:22px; }
+  .sub b { color:var(--ink); }
+  .card { background:var(--surface); border:1px solid var(--ring); border-radius:10px; padding:6px 20px 10px; }
+  .tbl-scroll { overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; font-size:13.5px; }
+  th { text-align:left; font-size:11px; letter-spacing:0.08em; text-transform:uppercase;
+       color:var(--ink-3); padding:10px 14px 8px 0; border-bottom:1px solid var(--axis); }
+  td { padding:9px 14px 9px 0; border-bottom:1px solid var(--grid);
+       font-variant-numeric:tabular-nums; color:var(--ink-2); white-space:nowrap; }
+  tr:last-child td { border-bottom:none; }
+  td.drv { color:var(--ink); font-weight:600; }
+  th.num, td.num { text-align:right; }
+  .sev { display:inline-flex; align-items:center; gap:4px; margin-right:10px; }
+  a.open { color:var(--series); font-weight:600; text-decoration:none; }
+  a.open:hover { text-decoration:underline; }
+  a.open:focus-visible { outline:2px solid var(--series); outline-offset:2px; }
+  footer { color:var(--ink-3); font-size:12.5px; margin-top:18px; }
+</style>
+<div class="wrap">
+  <div class="eyebrow">PitBrain telemetry review · Gemma via Spur</div>
+  <h1>2025 British Grand Prix — full field</h1>
+  <div class="sub">Per-lap risk + coaching by <b>spur-gemma4</b> ·
+    field benchmark: <b>PIA</b> lap 51,
+    89.337s · ▲ critical / ◆ warning / ● clear laps</div>
+  <div class="card"><div class="tbl-scroll">
+  <table>
+    <thead><tr><th class="num">Pos</th><th>Driver</th><th>Team</th>
+      <th class="num">Laps analyzed</th><th>Model verdicts</th>
+      <th class="num">Best lap</th><th class="num">Gap to benchmark</th>
+      <th class="num">Maintain laps</th><th></th></tr></thead>
+    <tbody><tr><td class="num">P1</td><td class="drv">NOR</td><td>McLaren</td><td class="num">12</td><td><span class="sev"><span style="color:var(--crit)" aria-hidden="true">▲</span>0</span><span class="sev"><span style="color:var(--warn)" aria-hidden="true">◆</span>10</span><span class="sev"><span style="color:var(--good)" aria-hidden="true">●</span>2</span></td><td class="num">89.734s</td><td class="num">+0.397s</td><td class="num">3</td><td><a class="open" href="2025_british_grand_prix_NOR.html">open review</a></td></tr><tr><td class="num">P2</td><td class="drv">PIA</td><td>McLaren</td><td class="num">12</td><td><span class="sev"><span style="color:var(--crit)" aria-hidden="true">▲</span>0</span><span class="sev"><span style="color:var(--warn)" aria-hidden="true">◆</span>10</span><span class="sev"><span style="color:var(--good)" aria-hidden="true">●</span>2</span></td><td class="num">89.337s</td><td class="num">+0.000s</td><td class="num">8</td><td><a class="open" href="2025_british_grand_prix_PIA.html">open review</a></td></tr><tr><td class="num">P3</td><td class="drv">HUL</td><td>Kick Sauber</td><td class="num">12</td><td><span class="sev"><span style="color:var(--crit)" aria-hidden="true">▲</span>0</span><span class="sev"><span style="color:var(--warn)" aria-hidden="true">◆</span>9</span><span class="sev"><span style="color:var(--good)" aria-hidden="true">●</span>3</span></td><td class="num">90.933s</td><td class="num">+1.596s</td><td class="num">0</td><td><a class="open" href="2025_british_grand_prix_HUL.html">open review</a></td></tr><tr><td class="num">P4</td><td class="drv">HAM</td><td>Ferrari</td><td class="num">32</td><td><span class="sev"><span style="color:var(--crit)" aria-hidden="true">▲</span>0</span><span class="sev"><span style="color:var(--warn)" aria-hidden="true">◆</span>23</span><span class="sev"><span style="color:var(--good)" aria-hidden="true">●</span>9</span></td><td class="num">90.016s</td><td class="num">+0.679s</td><td class="num">0</td><td><a class="open" href="2025_british_grand_prix_HAM.html">open review</a></td></tr><tr><td class="num">P5</td><td class="drv">VER</td><td>Red Bull Racing</td><td class="num">12</td><td><span class="sev"><span style="color:var(--crit)" aria-hidden="true">▲</span>0</span><span class="sev"><span style="color:var(--warn)" aria-hidden="true">◆</span>9</span><span class="sev"><span style="color:var(--good)" aria-hidden="true">●</span>3</span></td><td class="num">90.179s</td><td class="num">+0.842s</td><td class="num">0</td><td><a class="open" href="2025_british_grand_prix_VER.html">open review</a></td></tr><tr><td class="num">P6</td><td class="drv">GAS</td><td>Alpine</td><td class="num">12</td><td><span class="sev"><span style="color:var(--crit)" aria-hidden="true">▲</span>0</span><span class="sev"><span style="color:var(--warn)" aria-hidden="true">◆</span>7</span><span class="sev"><span style="color:var(--good)" aria-hidden="true">●</span>5</span></td><td class="num">90.751s</td><td class="num">+1.414s</td><td class="num">0</td><td><a class="open" href="2025_british_grand_prix_GAS.html">open review</a></td></tr><tr><td class="num">P7</td><td class="drv">STR</td><td>Aston Martin</td><td class="num">12</td><td><span class="sev"><span style="color:var(--crit)" aria-hidden="true">▲</span>0</span><span class="sev"><span style="color:var(--warn)" aria-hidden="true">◆</span>10</span><span class="sev"><span style="color:var(--good)" aria-hidden="true">●</span>2</span></td><td class="num">92.088s</td><td class="num">+2.751s</td><td class="num">0</td><td><a class="open" href="2025_british_grand_prix_STR.html">open review</a></td></tr><tr><td class="num">P8</td><td class="drv">ALB</td><td>Williams</td><td class="num">12</td><td><span class="sev"><span style="color:var(--crit)" aria-hidden="true">▲</span>0</span><span class="sev"><span style="color:var(--warn)" aria-hidden="true">◆</span>10</span><span class="sev"><span style="color:var(--good)" aria-hidden="true">●</span>2</span></td><td class="num">90.047s</td><td class="num">+0.710s</td><td class="num">0</td><td><a class="open" href="2025_british_grand_prix_ALB.html">open review</a></td></tr><tr><td class="num">P9</td><td class="drv">ALO</td><td>Aston Martin</td><td class="num">12</td><td><span class="sev"><span style="color:var(--crit)" aria-hidden="true">▲</span>0</span><span class="sev"><span style="color:var(--warn)" aria-hidden="true">◆</span>9</span><span class="sev"><span style="color:var(--good)" aria-hidden="true">●</span>3</span></td><td class="num">90.353s</td><td class="num">+1.016s</td><td class="num">0</td><td><a class="open" href="2025_british_grand_prix_ALO.html">open review</a></td></tr><tr><td class="num">P10</td><td class="drv">RUS</td><td>Mercedes</td><td class="num">12</td><td><span class="sev"><span style="color:var(--crit)" aria-hidden="true">▲</span>0</span><span class="sev"><span style="color:var(--warn)" aria-hidden="true">◆</span>10</span><span class="sev"><span style="color:var(--good)" aria-hidden="true">●</span>2</span></td><td class="num">90.869s</td><td class="num">+1.532s</td><td class="num">0</td><td><a class="open" href="2025_british_grand_prix_RUS.html">open review</a></td></tr><tr><td class="num">P11</td><td class="drv">BEA</td><td>Haas F1 Team</td><td class="num">12</td><td><span class="sev"><span style="color:var(--crit)" aria-hidden="true">▲</span>0</span><span class="sev"><span style="color:var(--warn)" aria-hidden="true">◆</span>10</span><span class="sev"><span style="color:var(--good)" aria-hidden="true">●</span>2</span></td><td class="num">90.921s</td><td class="num">+1.584s</td><td class="num">0</td><td><a class="open" href="2025_british_grand_prix_BEA.html">open review</a></td></tr><tr><td class="num">P12</td><td class="drv">SAI</td><td>Williams</td><td class="num">12</td><td><span class="sev"><span style="color:var(--crit)" aria-hidden="true">▲</span>0</span><span class="sev"><span style="color:var(--warn)" aria-hidden="true">◆</span>8</span><span class="sev"><span style="color:var(--good)" aria-hidden="true">●</span>4</span></td><td class="num">90.645s</td><td class="num">+1.308s</td><td class="num">0</td><td><a class="open" href="2025_british_grand_prix_SAI.html">open review</a></td></tr><tr><td class="num">P13</td><td class="drv">OCO</td><td>Haas F1 Team</td><td class="num">12</td><td><span class="sev"><span style="color:var(--crit)" aria-hidden="true">▲</span>0</span><span class="sev"><span style="color:var(--warn)" aria-hidden="true">◆</span>8</span><span class="sev"><span style="color:var(--good)" aria-hidden="true">●</span>4</span></td><td class="num">90.818s</td><td class="num">+1.481s</td><td class="num">0</td><td><a class="open" href="2025_british_grand_prix_OCO.html">open review</a></td></tr><tr><td class="num">P14</td><td class="drv">LEC</td><td>Ferrari</td><td class="num">12</td><td><span class="sev"><span style="color:var(--crit)" aria-hidden="true">▲</span>0</span><span class="sev"><span style="color:var(--warn)" aria-hidden="true">◆</span>10</span><span class="sev"><span style="color:var(--good)" aria-hidden="true">●</span>2</span></td><td class="num">90.819s</td><td class="num">+1.482s</td><td class="num">0</td><td><a class="open" href="2025_british_grand_prix_LEC.html">open review</a></td></tr><tr><td class="num">P15</td><td class="drv">TSU</td><td>Red Bull Racing</td><td class="num">12</td><td><span class="sev"><span style="color:var(--crit)" aria-hidden="true">▲</span>0</span><span class="sev"><span style="color:var(--warn)" aria-hidden="true">◆</span>9</span><span class="sev"><span style="color:var(--good)" aria-hidden="true">●</span>3</span></td><td class="num">90.873s</td><td class="num">+1.536s</td><td class="num">0</td><td><a class="open" href="2025_british_grand_prix_TSU.html">open review</a></td></tr></tbody>
+  </table>
+  </div></div>
+  <footer>Generated from FastF1 race data · each row links to that driver's full lap-by-lap review.</footer>
+</div>
+</body>
+</html>

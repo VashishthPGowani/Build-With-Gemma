@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PitBrain Review — 2025 British Grand Prix · ALO</title>
+</head>
+<body>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7; --surface: #fcfcfb;
+    --ink: #0b0b0b; --ink-2: #52514e; --ink-3: #898781;
+    --grid: #e1e0d9; --axis: #c3c2b7; --ring: rgba(11,11,11,0.10);
+    --series: #2a78d6; --series-wash: rgba(42,120,214,0.10);
+    --crit: #d03b3b; --warn: #fab219; --good: #0ca30c;
+    --chip-bg: rgba(11,11,11,0.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --page: #0d0d0d; --surface: #1a1a19;
+      --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #898781;
+      --grid: #2c2c2a; --axis: #383835; --ring: rgba(255,255,255,0.10);
+      --series: #3987e5; --series-wash: rgba(57,135,229,0.12);
+      --chip-bg: rgba(255,255,255,0.07);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19;
+    --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #898781;
+    --grid: #2c2c2a; --axis: #383835; --ring: rgba(255,255,255,0.10);
+    --series: #3987e5; --series-wash: rgba(57,135,229,0.12);
+    --chip-bg: rgba(255,255,255,0.07);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--page); color: var(--ink);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 20px 64px; display: flex; flex-direction: column; gap: 20px; }
+
+  .eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+  header .race { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; margin: 2px 0 4px; }
+  header .sub { color: var(--ink-2); font-size: 14px; }
+  header .sub b { color: var(--ink); font-weight: 600; }
+
+  .card { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 18px 20px; }
+  h2 { font-size: 13px; font-weight: 600; letter-spacing: 0.10em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 12px; }
+
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .tile { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 14px 16px; }
+  .tile .label { font-size: 12px; color: var(--ink-3); }
+  .tile .value { font-size: 30px; font-weight: 600; margin-top: 2px; }
+  .tile .note { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 12.5px; color: var(--ink-2); margin-top: 10px; }
+  .legend .key { display: inline-flex; align-items: center; gap: 6px; }
+  .legend svg { flex: none; }
+
+  .chart-box { position: relative; }
+  .chart-box svg { display: block; width: 100%; height: auto; }
+  .tip {
+    position: absolute; pointer-events: none; z-index: 3; display: none;
+    background: var(--surface); border: 1px solid var(--ring); border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.14); padding: 9px 12px; font-size: 12.5px;
+    min-width: 190px; max-width: 250px; color: var(--ink-2);
+  }
+  .tip b { color: var(--ink); }
+  .tick { fill: var(--ink-3); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .marker { cursor: pointer; }
+  .marker:focus { outline: none; }
+  .marker:focus-visible .shape { stroke: var(--series); stroke-width: 2.5; }
+
+  .cols { display: grid; grid-template-columns: minmax(320px, 5fr) minmax(320px, 6fr); gap: 20px; align-items: start; }
+  @media (max-width: 860px) { .cols { grid-template-columns: 1fr; } }
+
+  .chip { display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: 999px;
+          font-size: 12px; font-weight: 600; background: var(--chip-bg); color: var(--ink-2); }
+  .chip .dot { width: 9px; height: 9px; flex: none; }
+  .sys-tag { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+
+  .issue { padding: 11px 0; border-top: 1px solid var(--grid); display: flex; flex-direction: column; gap: 5px; }
+  .issue:first-child { border-top: none; }
+  .issue .head { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+  .issue .lapref { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 12.5px; }
+  .issue .desc { font-size: 13.5px; }
+  .issue .rec { font-size: 12.5px; color: var(--ink-2); }
+  .issue .tf { font-size: 12px; color: var(--ink-2); white-space: nowrap; }
+  .issue .tf b { color: var(--ink); }
+
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .filters button {
+    font: inherit; font-size: 12.5px; font-weight: 600; color: var(--ink-2);
+    background: transparent; border: 1px solid var(--ring); border-radius: 999px;
+    padding: 4px 13px; cursor: pointer;
+  }
+  .filters button:hover { background: var(--chip-bg); }
+  .filters button[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+  .filters button:focus-visible { outline: 2px solid var(--series); outline-offset: 2px; }
+
+  .detail .lap-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+  .detail .lap-head .lapnum { font-size: 22px; font-weight: 700; }
+  .detail .meta-line { font-size: 13px; color: var(--ink-2); margin-bottom: 10px; }
+  .detail .gap { font-size: 13.5px; margin: 10px 0 6px; }
+  .detail ul { margin: 6px 0 2px; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; }
+  .detail .agree { font-size: 12.5px; color: var(--ink-2); border-top: 1px solid var(--grid); margin-top: 12px; padding-top: 10px; }
+  .coach-eyebrow { margin-top: 14px; }
+
+  .feed-scroll { max-height: 520px; overflow-y: auto; }
+  .empty { color: var(--ink-3); font-size: 13.5px; padding: 12px 0; }
+
+  details.table-view summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+  details.table-view summary:focus-visible { outline: 2px solid var(--series); outline-offset: 2px; }
+  .tbl-scroll { overflow-x: auto; margin-top: 12px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th { text-align: left; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); padding: 6px 12px 6px 0; border-bottom: 1px solid var(--axis); }
+  td { padding: 6px 12px 6px 0; border-bottom: 1px solid var(--grid); font-variant-numeric: tabular-nums; color: var(--ink-2); vertical-align: top; }
+  td.num { text-align: right; }  th.num { text-align: right; }
+  td:first-child { color: var(--ink); font-weight: 600; }
+
+  footer { color: var(--ink-3); font-size: 12.5px; }
+  @media (prefers-reduced-motion: no-preference) {
+    .filters button, .marker .shape { transition: background 0.12s ease, opacity 0.12s ease; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">PitBrain telemetry review · Gemma via Spur</div>
+    <div class="race" id="h-race"></div>
+    <div class="sub" id="h-sub"></div>
+  </header>
+
+  <section class="tiles" id="tiles" aria-label="Race summary"></section>
+
+  <section class="card">
+    <h2>Lap times · model verdict per lap</h2>
+    <div class="chart-box" id="chart-box">
+      <div class="tip" id="tip" role="status"></div>
+    </div>
+    <div class="legend" id="legend"></div>
+  </section>
+
+  <div class="cols">
+    <section class="card detail" id="detail" aria-live="polite">
+      <h2>Selected lap</h2>
+      <div id="detail-body"></div>
+    </section>
+
+    <section class="card">
+      <h2>Issue feed</h2>
+      <div class="filters" id="filters" role="group" aria-label="Filter issues by severity"></div>
+      <div class="feed-scroll" id="feed"></div>
+    </section>
+  </div>
+
+  <section class="card">
+    <details class="table-view">
+      <summary>Table view — every analyzed lap</summary>
+      <div class="tbl-scroll" id="tbl"></div>
+    </details>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+
+<script type="application/json" id="data">{"meta": {"event": "British Grand Prix", "year": 2025, "driver": "ALO", "team": "Aston Martin", "model": "spur-gemma4", "benchmark": {"driver": "PIA", "lap": 51, "time": 89.337}, "classification": [{"d": "NOR", "p": 1}, {"d": "PIA", "p": 2}, {"d": "HUL", "p": 3}, {"d": "HAM", "p": 4}, {"d": "VER", "p": 5}, {"d": "GAS", "p": 6}, {"d": "STR", "p": 7}, {"d": "ALB", "p": 8}, {"d": "ALO", "p": 9}, {"d": "RUS", "p": 10}, {"d": "BEA", "p": 11}, {"d": "SAI", "p": 12}, {"d": "OCO", "p": 13}, {"d": "LEC", "p": 14}, {"d": "TSU", "p": 15}, {"d": "ANT", "p": 16}, {"d": "HAD", "p": 16}, {"d": "BOR", "p": 17}]}, "laps": [{"n": 1, "t": 110.468, "pos": 6.0, "comp": "INTERMEDIATE", "life": 1.0, "stint": 1.0, "acc": false}, {"n": 2, "t": 137.676, "pos": 7.0, "comp": "INTERMEDIATE", "life": 2.0, "stint": 1.0, "acc": false}, {"n": 3, "t": 137.227, "pos": 6.0, "comp": "INTERMEDIATE", "life": 3.0, "stint": 1.0, "acc": false}, {"n": 4, "t": 105.678, "pos": 6.0, "comp": "INTERMEDIATE", "life": 4.0, "stint": 1.0, "acc": false}, {"n": 5, "t": 109.536, "pos": 6.0, "comp": "INTERMEDIATE", "life": 5.0, "stint": 1.0, "acc": false}, {"n": 6, "t": 136.643, "pos": 6.0, "comp": "INTERMEDIATE", "life": 6.0, "stint": 1.0, "acc": false}, {"n": 7, "t": 122.063, "pos": 6.0, "comp": "INTERMEDIATE", "life": 7.0, "stint": 1.0, "acc": false}, {"n": 8, "t": 106.42, "pos": 6.0, "comp": "INTERMEDIATE", "life": 8.0, "stint": 1.0, "acc": true}, {"n": 9, "t": 107.569, "pos": 6.0, "comp": "INTERMEDIATE", "life": 9.0, "stint": 1.0, "acc": true}, {"n": 10, "t": 108.951, "pos": 7.0, "comp": "INTERMEDIATE", "life": 10.0, "stint": 1.0, "acc": true}, {"n": 11, "t": 109.478, "pos": 6.0, "comp": "INTERMEDIATE", "life": 11.0, "stint": 1.0, "acc": false}, {"n": 12, "t": 127.516, "pos": 10.0, "comp": "INTERMEDIATE", "life": 1.0, "stint": 2.0, "acc": false}, {"n": 13, "t": 122.342, "pos": 10.0, "comp": "INTERMEDIATE", "life": 2.0, "stint": 2.0, "acc": false}, {"n": 14, "t": 136.573, "pos": 10.0, "comp": "INTERMEDIATE", "life": 3.0, "stint": 2.0, "acc": false}, {"n": 15, "t": 144.268, "pos": 10.0, "comp": "INTERMEDIATE", "life": 4.0, "stint": 2.0, "acc": false}, {"n": 16, "t": null, "pos": 10.0, "comp": "INTERMEDIATE", "life": 5.0, "stint": 2.0, "acc": false}, {"n": 17, "t": null, "pos": 10.0, "comp": "INTERMEDIATE", "life": 6.0, "stint": 2.0, "acc": false}, {"n": 18, "t": 127.029, "pos": 10.0, "comp": "INTERMEDIATE", "life": 7.0, "stint": 2.0, "acc": false}, {"n": 19, "t": null, "pos": 9.0, "comp": "INTERMEDIATE", "life": 8.0, "stint": 2.0, "acc": false}, {"n": 20, "t": null, "pos": 10.0, "comp": "INTERMEDIATE", "life": 9.0, "stint": 2.0, "acc": false}, {"n": 21, "t": null, "pos": 8.0, "comp": "INTERMEDIATE", "life": 10.0, "stint": 2.0, "acc": false}, {"n": 22, "t": 110.388, "pos": 8.0, "comp": "INTERMEDIATE", "life": 11.0, "stint": 2.0, "acc": true}, {"n": 23, "t": 106.209, "pos": 8.0, "comp": "INTERMEDIATE", "life": 12.0, "stint": 2.0, "acc": true}, {"n": 24, "t": 104.879, "pos": 8.0, "comp": "INTERMEDIATE", "life": 13.0, "stint": 2.0, "acc": true}, {"n": 25, "t": 104.158, "pos": 8.0, "comp": "INTERMEDIATE", "life": 14.0, "stint": 2.0, "acc": true}, {"n": 26, "t": 103.977, "pos": 8.0, "comp": "INTERMEDIATE", "life": 15.0, "stint": 2.0, "acc": true}, {"n": 27, "t": 103.527, "pos": 8.0, "comp": "INTERMEDIATE", "life": 16.0, "stint": 2.0, "acc": true}, {"n": 28, "t": 103.779, "pos": 8.0, "comp": "INTERMEDIATE", "life": 17.0, "stint": 2.0, "acc": true}, {"n": 29, "t": 103.763, "pos": 8.0, "comp": "INTERMEDIATE", "life": 18.0, "stint": 2.0, "acc": true}, {"n": 30, "t": 104.281, "pos": 8.0, "comp": "INTERMEDIATE", "life": 19.0, "stint": 2.0, "acc": true}, {"n": 31, "t": 104.625, "pos": 8.0, "comp": "INTERMEDIATE", "life": 20.0, "stint": 2.0, "acc": true}, {"n": 32, "t": 104.587, "pos": 8.0, "comp": "INTERMEDIATE", "life": 21.0, "stint": 2.0, "acc": true}, {"n": 33, "t": 104.331, "pos": 8.0, "comp": "INTERMEDIATE", "life": 22.0, "stint": 2.0, "acc": true}, {"n": 34, "t": 104.712, "pos": 8.0, "comp": "INTERMEDIATE", "life": 23.0, "stint": 2.0, "acc": true}, {"n": 35, "t": 103.238, "pos": 8.0, "comp": "INTERMEDIATE", "life": 24.0, "stint": 2.0, "acc": true}, {"n": 36, "t": 102.516, "pos": 8.0, "comp": "INTERMEDIATE", "life": 25.0, "stint": 2.0, "acc": true}, {"n": 37, "t": 100.138, "pos": 7.0, "comp": "INTERMEDIATE", "life": 26.0, "stint": 2.0, "acc": false}, {"n": 38, "t": 136.801, "pos": 15.0, "comp": "MEDIUM", "life": 2.0, "stint": 3.0, "acc": false}, {"n": 39, "t": 107.666, "pos": 15.0, "comp": "MEDIUM", "life": 3.0, "stint": 3.0, "acc": true}, {"n": 40, "t": 102.659, "pos": 15.0, "comp": "MEDIUM", "life": 4.0, "stint": 3.0, "acc": true}, {"n": 41, "t": 100.67, "pos": 15.0, "comp": "MEDIUM", "life": 5.0, "stint": 3.0, "acc": true}, {"n": 42, "t": 99.415, "pos": 14.0, "comp": "MEDIUM", "life": 6.0, "stint": 3.0, "acc": true}, {"n": 43, "t": 97.153, "pos": 9.0, "comp": "MEDIUM", "life": 7.0, "stint": 3.0, "acc": true}, {"n": 44, "t": 93.635, "pos": 8.0, "comp": "MEDIUM", "life": 8.0, "stint": 3.0, "acc": true}, {"n": 45, "t": 93.119, "pos": 8.0, "comp": "MEDIUM", "life": 9.0, "stint": 3.0, "acc": true}, {"n": 46, "t": 92.4, "pos": 8.0, "comp": "MEDIUM", "life": 10.0, "stint": 3.0, "acc": true}, {"n": 47, "t": 91.386, "pos": 8.0, "comp": "MEDIUM", "life": 11.0, "stint": 3.0, "acc": true}, {"n": 48, "t": 90.669, "pos": 8.0, "comp": "MEDIUM", "life": 12.0, "stint": 3.0, "acc": true}, {"n": 49, "t": 90.353, "pos": 8.0, "comp": "MEDIUM", "life": 13.0, "stint": 3.0, "acc": true}, {"n": 50, "t": 90.943, "pos": 8.0, "comp": "MEDIUM", "life": 14.0, "stint": 3.0, "acc": true}, {"n": 51, "t": 90.578, "pos": 8.0, "comp": "MEDIUM", "life": 15.0, "stint": 3.0, "acc": true}, {"n": 52, "t": 92.745, "pos": 9.0, "comp": "MEDIUM", "life": 16.0, "stint": 3.0, "acc": true}], "analysis": {"8": {"st": "warning", "ruleSt": "ok", "issues": [{"sev": "warning", "sys": "tyres", "d": "Extreme lap time volatility on Intermediates (106.42s vs 122.06s vs 136.64s) despite no rainfall, suggesting severe overheating or inconsistent track surface grip.", "tf": "within 3 laps", "rec": "Monitor surface temperatures; consider switching to Slicks if track continues to dry."}, {"sev": "low", "sys": "pace", "d": "Current lap (106.42s) is slower than lap 4 (105.678s) despite similar tyre life context, indicating a slight drop in peak performance.", "tf": "immediate", "rec": "Review Sector 2 telemetry for potential mid-corner scrubbing."}], "coach": {"mode": "chase", "cmp": "PIA", "gap": "Current lap is 17.083s slower than the benchmark, primarily due to compound disparity.", "sugg": ["Switch from Intermediate to Medium compound to recover massive time loss in Sectors 2 and 3", "Increase minimum speed through the high-speed corners of Sector 2 to close the 7.3s gap", "Optimize braking points into the chicane to match the 253km/h reference speed", "Aggressively attack the final sector where the gap is widest (6.011s)"]}}, "22": {"st": "warning", "ruleSt": "ok", "issues": [{"sev": "warning", "sys": "strategy", "d": "Track status '12' and zero rainfall with track temp 23.1C suggests a drying line; Intermediate tyres are likely overheating/degrading rapidly.", "tf": "within 3 laps", "rec": "Prepare for transition to Slicks; monitor lap time delta against drivers on dry compounds."}, {"sev": "low", "sys": "pace", "d": "Lap time 110.388s is significantly slower than optimal for a dry-leaning track, though recovering from previous instability (Laps 17-21).", "tf": "immediate", "rec": "Push in Sector 2 (45.75s) to find more time while grip permits."}], "coach": {"mode": "chase", "cmp": "PIA", "gap": "Current lap is 21.051s slower than the benchmark, primarily due to compound disparity and sector 2 loss.", "sugg": ["Aggressively optimize braking points into the Copse and Maggotts/Becketts complex to recover the 9.4s loss in Sector 2.", "Increase minimum speed through the high-speed sweeps; current telemetry shows a significant deficit in lateral velocity compared to the McLaren.", "Maximize exit traction out of the final corner to close the 13km/h gap at the start-finish line.", "Evaluate a pit stop for Mediums; the Intermediate compound is severely limiting top-end speed and cornering stability on this track surface."]}}, "25": {"st": "warning", "ruleSt": "ok", "issues": [{"sev": "warning", "sys": "strategy", "d": "Track is drying (rainfall: false, air_temp: 17.2C) and driver is setting personal bests (104.158s) on 14-lap old Intermediates", "tf": "within 3 laps", "rec": "Monitor crossover point for slick tyres; prepare for pit stop as lap times continue to drop"}, {"sev": "low", "sys": "tyres", "d": "Intermediate tyre life reaching 14 laps on a drying track, increasing risk of overheating/graining", "tf": "within 5 laps", "rec": "Manage tyre temperatures in Sector 2 to extend life until crossover"}], "coach": {"mode": "chase", "cmp": "PIA", "gap": "Current lap is 14.821s slower than the benchmark, primarily due to compound disparity.", "sugg": ["Aggressively optimize braking points into Copse and Maggotts/Becketts to recover the 6.985s loss in Sector 2", "Increase minimum speed through the final complex to close the 4.268s deficit in Sector 3", "Maximize exit traction out of the final corner to improve the 15km/h deficit on the main straight", "Manage the Intermediate tyres carefully; the gap is largely driven by the Medium compound's superior grip"]}}, "27": {"st": "warning", "ruleSt": "ok", "issues": [{"sev": "warning", "sys": "tyres", "d": "Intermediate tyres on dry track (rainfall: false) with track temp 22.5C; lap times dropping rapidly (110.3s to 103.5s) indicating high degradation/overheating risk", "tf": "within 3 laps", "rec": "Prepare for pit stop to switch to slicks"}], "coach": {"mode": "chase", "cmp": "PIA", "gap": "Significant gap of 14.190s primarily driven by compound difference and low minimum speeds.", "sugg": ["Increase minimum speed through Copse and Maggots-Becketts to close the 6.68s loss in Sector 2", "Aggressively attack the braking zone into Vale to recover the 11km/h deficit in speed_fl", "Optimize exit traction out of the final corner to match the 10km/h delta on the main straight", "Shift braking points deeper in Sector 1 to reduce the 3.551s deficit"]}}, "30": {"st": "warning", "ruleSt": "warning", "issues": [{"sev": "warning", "sys": "tyres", "d": "Lap time degradation observed; current lap 104.281s is 0.754s slower than lap 27 peak (103.527s) with 19 laps on Intermediates.", "tf": "within 3 laps", "rec": "Monitor track surface for drying line; prepare for crossover to Slicks if rainfall remains zero."}, {"sev": "low", "sys": "pace", "d": "Sector 2 performance drop (43.086s) contributing to overall lap time increase.", "tf": "immediate", "rec": "Review mid-corner minimum speeds in Sector 2 to mitigate tyre slip."}], "coach": {"mode": "chase", "cmp": "PIA", "gap": "Current lap is 14.944s slower than the benchmark, primarily due to compound disparity.", "sugg": ["Prioritize a pit stop to switch from Intermediates to Mediums as the track has dried", "Increase minimum speed through Sector 2 by carrying more momentum into the corners", "Aggressively attack the braking zone at the end of the main straight to match the 317km/h benchmark", "Reduce the time loss in Sector 3 by optimizing the line through the final complex"]}}, "33": {"st": "warning", "ruleSt": "warning", "issues": [{"sev": "warning", "sys": "tyres", "d": "Lap times trending upward from 103.763s (L29) to 104.331s (L33) as intermediate tyre life reaches 22 laps; performance drop-off evident.", "tf": "within 3-5 laps", "rec": "Monitor degradation closely; prepare for crossover to slicks if track continues to dry."}, {"sev": "low", "sys": "pace", "d": "Loss of ~0.5s per lap compared to peak stint pace (L28-L29).", "tf": "immediate", "rec": "Adjust brake bias or diff entry to compensate for reduced grip."}], "coach": {"mode": "chase", "cmp": "PIA", "gap": "You are trailing the benchmark by 14.994 seconds, primarily due to compound disparity.", "sugg": ["Switch from Intermediates to Mediums immediately to recover massive time in Sector 2", "Increase minimum speed through the high-speed sweeps to close the 24km/h deficit at i2", "Attack the braking zone into the final chicane to bring the 224km/h fl speed closer to 253km/h", "Optimize exit traction out of the final corner to gain the 11km/h deficit on the main straight"]}}, "36": {"st": "warning", "ruleSt": "warning", "issues": [{"sev": "warning", "sys": "tyres", "d": "Intermediate tyres reaching 25 laps of life; lap time improvement to 102.516s suggests track is drying (crossover point), but tyre degradation will accelerate on a dry surface.", "tf": "within 3 laps", "rec": "Monitor track evolution and prepare for switch to slicks if rainfall remains zero."}], "coach": {"mode": "chase", "cmp": "PIA", "gap": "Current lap is 13.179s slower than the benchmark, primarily due to compound disparity.", "sugg": ["Aggressively optimize Sector 2 mid-corner speeds to recover the 6.293s loss", "Increase minimum speed through the high-speed sweeps to match McLaren's aero efficiency", "Shorten braking zones in Sector 3 to reduce the 3.730s deficit", "Manage Intermediate tyre degradation to avoid further time loss relative to Mediums"]}}, "41": {"st": "ok", "ruleSt": "ok", "issues": [{"sev": "low", "sys": "pace", "d": "Recovery phase following pit stop at lap 38; current lap 100.67s is a personal best for this stint but still 2.5s off lap 37 pace", "tf": "within 3 laps", "rec": "Continue aggressive push to recover positions; monitor tyre degradation on Mediums"}], "coach": {"mode": "chase", "cmp": "PIA", "gap": "You are trailing the benchmark by 11.333 seconds per lap.", "sugg": ["Aggressively increase minimum speed through Sector 2; you are losing nearly 6 seconds here compared to the McLaren.", "Carry more entry speed into Turn 1 and the high-speed sweeps of Sector 1 to shave off the 3.4s deficit.", "Optimize your line through the final complex in Sector 3 to improve exit speed onto the main straight.", "Focus on late braking and a tighter apex at the end of the straights to match the reference's higher top speeds."]}}, "44": {"st": "ok", "ruleSt": "ok", "issues": [{"sev": "low", "sys": "pace", "d": "Significant lap time delta from lap 39 (107.666s) to lap 44 (93.635s), indicating a recovery phase or clearing of traffic", "tf": "immediate", "rec": "Maintain current push pace to consolidate P8 position"}], "coach": {"mode": "chase", "cmp": "PIA", "gap": "You are trailing the benchmark by 4.298 seconds, with the majority of the loss occurring in Sector 2.", "sugg": ["Aggressively attack the mid-sector; you are losing over 2 seconds in Sector 2 alone.", "Optimize your line through the Maggotts-Becketts complex to carry more minimum speed.", "Reduce braking distance into the heavy braking zones to match the McLaren's rotation.", "Leverage your higher straight-line speed (332 kmh vs 317 kmh) to defend or overtake on the Hangar Straight."]}}, "46": {"st": "warning", "ruleSt": "warning", "issues": [{"sev": "warning", "sys": "powertrain", "d": "Significant drop in straight-line speed (speed_st_kmh) from 335kmh (Lap 43) to 308kmh (Lap 46), despite a personal best lap time.", "tf": "immediate", "rec": "Check ERS deployment levels and engine mode settings; verify if fuel saving or a clipping issue is occurring."}, {"sev": "low", "sys": "tyres", "d": "Medium compound reaching 10 laps of life with a trend of increasing pace, but potential for cliff approaching.", "tf": "within 3 laps", "rec": "Monitor degradation rates in Sector 2 to determine if current pace is sustainable for the finish."}], "coach": {"mode": "chase", "cmp": "PIA", "gap": "You are trailing the benchmark by 3.063 seconds per lap.", "sugg": ["Increase commitment into Turn 1 to recover the 5km/h deficit in entry speed.", "Optimize mid-corner rotation in Sector 2 to shave the 1.38s loss where the McLaren is significantly stronger.", "Carry more minimum speed through the final complex to close the 0.545s gap in Sector 3.", "Aggressively maximize the exit of the final corner to gain more top speed on the main straight (currently -9km/h)."]}}, "49": {"st": "ok", "ruleSt": "warning", "issues": [{"sev": "low", "sys": "powertrain", "d": "Significant drop in top speed from lap 44 (332 km/h) to lap 49 (312 km/h), though lap times are improving.", "tf": "monitor for remaining laps", "rec": "Verify ERS deployment mode and check for any drag increase or fuel load impact."}], "coach": {"mode": "chase", "cmp": "PIA", "gap": "You are trailing the benchmark by 1.016 seconds per lap.", "sugg": ["Increase commitment into Turn 1 to recover the 4km/h deficit in entry speed.", "Optimize the mid-sector rotation to shave time in Sector 2, where you are losing 0.305s.", "Carry more minimum speed through the final complex to close the 0.369s gap in Sector 3.", "Maximize exit traction onto the main straight to match the 5km/h top speed delta."]}}, "52": {"st": "warning", "ruleSt": "warning", "issues": [{"sev": "warning", "sys": "pace", "d": "Significant lap time drop-off of 2.167s compared to lap 49 (92.745s vs 90.353s), resulting in loss of position from 8th to 9th.", "tf": "immediate", "rec": "Analyze sector 2 loss; check for traffic or sudden degradation."}, {"sev": "low", "sys": "tyres", "d": "Medium compound degradation accelerating at 16 laps; pace cliff likely hit.", "tf": "within 2 laps", "rec": "Manage tyre temperatures and adjust driving lines to reduce lateral load."}], "coach": {"mode": "chase", "cmp": "PIA", "gap": "You are trailing the benchmark by 3.408 seconds, with the primary loss occurring in Sector 2.", "sugg": ["Aggressively attack the mid-sector; you are losing over 2 seconds in S2 compared to the McLaren.", "Carry more minimum speed through the Maggotts-Becketts complex to reduce the S2 deficit.", "Optimize your exit from the final corner to maximize the straight-line speed delta.", "Manage the 16-lap old Mediums by avoiding excessive scrubbing in the high-energy corners of S1."]}}}}</script>
+<script>
+(() => {
+  const DATA = JSON.parse(document.getElementById("data").textContent);
+  const M = DATA.meta, LAPS = DATA.laps, AN = DATA.analysis;
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const SEV = {
+    critical: { color: "var(--crit)", icon: "▲", label: "Critical" },
+    warning:  { color: "var(--warn)", icon: "◆", label: "Warning" },
+    low:      { color: "var(--ink-3)", icon: "●", label: "Low" },
+  };
+  const STATUS = {
+    critical: { color: "var(--crit)", shape: "tri",     label: "Critical" },
+    warning:  { color: "var(--warn)", shape: "diamond", label: "Warning" },
+    ok:       { color: "var(--good)", shape: "circle",  label: "Clear" },
+  };
+  const fmtT = s => s == null ? "—" :
+    (s >= 60 ? Math.floor(s / 60) + ":" + (s % 60).toFixed(3).padStart(6, "0") : s.toFixed(3) + "s");
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  // ---- header ----
+  document.getElementById("h-race").textContent = `${M.year} ${M.event} — ${M.driver} (${M.team})`;
+  document.getElementById("h-sub").innerHTML =
+    `Every clean lap analyzed by <b>${esc(M.model)}</b> · benchmark: <b>${esc(M.benchmark.driver)}</b> ` +
+    `lap ${M.benchmark.lap}, ${fmtT(M.benchmark.time)} · podium: ` +
+    M.classification.slice(0, 3).map(r => `P${r.p} ${esc(r.d)}`).join(", ");
+
+  // ---- stats ----
+  const analyzed = Object.keys(AN).map(Number).sort((a, b) => a - b);
+  const clean = LAPS.filter(l => l.t != null && l.acc);
+  const bestLap = clean.reduce((a, b) => (b.t < a.t ? b : a), clean[0]);
+  const counts = { critical: 0, warning: 0, ok: 0 };
+  let agree = 0, nIssues = 0;
+  for (const n of analyzed) {
+    const a = AN[n];
+    counts[a.st] = (counts[a.st] || 0) + 1;
+    if (a.st === a.ruleSt) agree++;
+    nIssues += a.issues.filter(i => i.sev !== "low" || i.sys !== "general").length;
+  }
+  const finalPos = (M.classification.find(r => r.d === M.driver) || {}).p;
+  const tiles = [
+    { label: "Final classification", value: finalPos ? "P" + finalPos : "—", note: `of ${M.classification.length} classified` },
+    { label: "Laps analyzed", value: analyzed.length, note: `of ${LAPS.length} completed` },
+    { label: "Best lap", value: fmtT(bestLap.t), note: `lap ${bestLap.n} · ${(bestLap.t - M.benchmark.time >= 0 ? "+" : "")}${(bestLap.t - M.benchmark.time).toFixed(3)}s vs benchmark` },
+    { label: "Issues flagged", value: nIssues, note: `${counts.critical} critical · ${counts.warning} laps on warning` },
+    { label: "Agrees with rule labels", value: Math.round(100 * agree / analyzed.length) + "%", note: "overall lap status" },
+  ];
+  document.getElementById("tiles").innerHTML = tiles.map(t =>
+    `<div class="tile"><div class="label">${esc(t.label)}</div>` +
+    `<div class="value">${esc(String(t.value))}</div><div class="note">${esc(t.note)}</div></div>`).join("");
+
+  // ---- chart ----
+  const W = 960, H = 340, mL = 52, mR = 16, mT = 30, mB = 34;
+  const pw = W - mL - mR, ph = H - mT - mB;
+  const withT = LAPS.filter(l => l.t != null);
+  const xMax = Math.max(...LAPS.map(l => l.n));
+  const yVals = withT.map(l => l.t).concat([M.benchmark.time]);
+  let yMin = Math.min(...yVals), yMax = Math.max(...yVals);
+  const pad = (yMax - yMin) * 0.06; yMin -= pad; yMax += pad;
+  const X = n => mL + (n - 1) / (xMax - 1) * pw;
+  const Y = t => mT + (yMax - t) / (yMax - yMin) * ph;
+
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", "Lap time by lap number with the model's per-lap status");
+  const el = (tag, attrs, parent) => {
+    const e = document.createElementNS(svgNS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    (parent || svg).appendChild(e); return e;
+  };
+
+  // stint bands (alternate wash) + compound labels
+  const stints = [];
+  for (const l of LAPS) {
+    const s = stints[stints.length - 1];
+    if (s && s.stint === l.stint) { s.to = l.n; s.comp = l.comp || s.comp; }
+    else stints.push({ stint: l.stint, from: l.n, to: l.n, comp: l.comp });
+  }
+  stints.forEach((s, i) => {
+    const x0 = s.from === 1 ? mL : X(s.from - 0.5), x1 = s.to === xMax ? mL + pw : X(s.to + 0.5);
+    if (i % 2 === 1) el("rect", { x: x0, y: mT, width: x1 - x0, height: ph, fill: "var(--series-wash)" });
+    const lbl = el("text", { x: (x0 + x1) / 2, y: mT - 8, "text-anchor": "middle", class: "tick" });
+    lbl.textContent = (s.comp || "").slice(0, 5) + (s.comp && s.comp.length > 5 ? "." : "");
+  });
+
+  // y grid + ticks
+  const step = Math.max(5, Math.ceil((yMax - yMin) / 6 / 5) * 5);
+  for (let t = Math.ceil(yMin / step) * step; t < yMax; t += step) {
+    el("line", { x1: mL, x2: mL + pw, y1: Y(t), y2: Y(t), stroke: "var(--grid)", "stroke-width": 1 });
+    const tx = el("text", { x: mL - 8, y: Y(t) + 4, "text-anchor": "end", class: "tick" });
+    tx.textContent = t + "s";
+  }
+  // x ticks every 5 laps
+  for (let n = 5; n <= xMax; n += 5) {
+    const tx = el("text", { x: X(n), y: H - 10, "text-anchor": "middle", class: "tick" });
+    tx.textContent = n;
+  }
+  el("line", { x1: mL, x2: mL + pw, y1: mT + ph, y2: mT + ph, stroke: "var(--axis)", "stroke-width": 1 });
+
+  // benchmark reference line + direct label
+  el("line", { x1: mL, x2: mL + pw, y1: Y(M.benchmark.time), y2: Y(M.benchmark.time), stroke: "var(--axis)", "stroke-width": 1 });
+  const bl = el("text", { x: mL + pw, y: Y(M.benchmark.time) - 6, "text-anchor": "end", class: "tick" });
+  bl.textContent = `${M.benchmark.driver} benchmark ${fmtT(M.benchmark.time)}`;
+
+  // lap-time line (gaps where no time)
+  let d = "", pen = false;
+  for (const l of LAPS) {
+    if (l.t == null) { pen = false; continue; }
+    d += (pen ? " L" : " M") + X(l.n).toFixed(1) + " " + Y(l.t).toFixed(1); pen = true;
+  }
+  el("path", { d: d.trim(), fill: "none", stroke: "var(--series)", "stroke-width": 2,
+               "stroke-linejoin": "round", "stroke-linecap": "round" });
+
+  // status markers on analyzed laps (shape = status, 2px surface ring)
+  const shapePath = (shape, x, y, r) =>
+    shape === "tri" ? `M${x} ${y - r} L${x + r * 0.95} ${y + r * 0.8} L${x - r * 0.95} ${y + r * 0.8} Z`
+    : shape === "diamond" ? `M${x} ${y - r} L${x + r} ${y} L${x} ${y + r} L${x - r} ${y} Z`
+    : null;
+  const markers = {};
+  for (const n of analyzed) {
+    const lap = LAPS.find(l => l.n === n);
+    if (!lap || lap.t == null) continue;
+    const a = AN[n], st = STATUS[a.st] || STATUS.ok;
+    const g = el("g", { class: "marker", tabindex: 0, role: "button",
+      "aria-label": `Lap ${n}, ${fmtT(lap.t)}, status ${st.label}, ${a.issues.length} issue(s)` });
+    const x = X(n), y = Y(lap.t), r = 5.5;
+    const attrs = { fill: st.color, stroke: "var(--surface)", "stroke-width": 2, class: "shape" };
+    if (st.shape === "circle") el("circle", { cx: x, cy: y, r, ...attrs }, g);
+    else el("path", { d: shapePath(st.shape, x, y, r + 1), ...attrs }, g);
+    el("circle", { cx: x, cy: y, r: 13, fill: "transparent" }, g); // hit target
+    markers[n] = g;
+    g.addEventListener("click", () => select(n));
+    g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(n); } });
+    g.addEventListener("focus", () => showTip(n));
+    g.addEventListener("blur", hideTip);
+  }
+
+  // crosshair + tooltip on nearest analyzed lap
+  const cross = el("line", { y1: mT, y2: mT + ph, stroke: "var(--axis)", "stroke-width": 1, opacity: 0 });
+  const box = document.getElementById("chart-box");
+  box.insertBefore(svg, box.firstChild);
+  const tip = document.getElementById("tip");
+  function showTip(n) {
+    const lap = LAPS.find(l => l.n === n), a = AN[n];
+    if (!lap) return;
+    const st = a ? (STATUS[a.st] || STATUS.ok) : null;
+    cross.setAttribute("x1", X(n)); cross.setAttribute("x2", X(n)); cross.setAttribute("opacity", 1);
+    tip.innerHTML =
+      `<b>Lap ${n}</b> · ${fmtT(lap.t)}${lap.pos ? " · P" + lap.pos : ""}<br>` +
+      `${esc(lap.comp || "")} · tyre ${lap.life ?? "—"} laps` +
+      (a ? `<br><b style="color:${st.color}">${st.label}</b> — ${a.issues.length} issue(s) · click for detail` : "<br>not analyzed (pit / neutralized)");
+    tip.style.display = "block";
+    const rect = box.getBoundingClientRect(), fx = X(n) / W * rect.width;
+    tip.style.left = Math.min(Math.max(fx - 95, 4), rect.width - 260) + "px";
+    tip.style.top = Math.max(mT / H * rect.height - 10, 0) + "px";
+  }
+  function hideTip() { tip.style.display = "none"; cross.setAttribute("opacity", 0); }
+  svg.addEventListener("mousemove", e => {
+    const rect = svg.getBoundingClientRect();
+    const n = Math.round((e.clientX - rect.left) / rect.width * W > mL
+      ? ((e.clientX - rect.left) / rect.width * W - mL) / pw * (xMax - 1) + 1 : 1);
+    const cands = withT.map(l => l.n);
+    const nearest = cands.reduce((a, b) => Math.abs(b - n) < Math.abs(a - n) ? b : a, cands[0]);
+    showTip(nearest);
+  });
+  svg.addEventListener("mouseleave", hideTip);
+
+  // legend: line key, benchmark key, status shapes
+  const keySvg = (inner) => `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true">${inner}</svg>`;
+  document.getElementById("legend").innerHTML =
+    `<span class="key">${keySvg(`<path d="M1 7 H17" stroke="var(--series)" stroke-width="2"/>`)} ${esc(M.driver)} lap time</span>` +
+    `<span class="key">${keySvg(`<path d="M1 7 H17" stroke="var(--axis)" stroke-width="1"/>`)} field benchmark</span>` +
+    `<span class="key">${keySvg(`<path d="M9 2 L15.5 12 L2.5 12 Z" fill="var(--crit)"/>`)} Critical</span>` +
+    `<span class="key">${keySvg(`<path d="M9 2 L15 7 L9 12 L3 7 Z" fill="var(--warn)"/>`)} Warning</span>` +
+    `<span class="key">${keySvg(`<circle cx="9" cy="7" r="5" fill="var(--good)"/>`)} Clear</span>` +
+    `<span class="key">${keySvg(`<rect x="1" y="1" width="16" height="12" fill="var(--series-wash)"/>`)} alternate stint (compound above)</span>`;
+
+  // ---- severity chip helper ----
+  const sevChip = (sev) => {
+    const s = SEV[sev] || SEV.low;
+    return `<span class="chip"><span aria-hidden="true" style="color:${s.color}">${s.icon}</span>${s.label}</span>`;
+  };
+  const statusChip = (st) => {
+    const s = STATUS[st] || STATUS.ok;
+    const icon = st === "critical" ? "▲" : st === "warning" ? "◆" : "●";
+    return `<span class="chip"><span aria-hidden="true" style="color:${s.color}">${icon}</span>${s.label}</span>`;
+  };
+
+  // ---- detail panel ----
+  let selected = null;
+  function select(n) {
+    selected = n;
+    const lap = LAPS.find(l => l.n === n), a = AN[n];
+    const c = a.coach || {};
+    document.getElementById("detail-body").innerHTML =
+      `<div class="lap-head"><span class="lapnum">Lap ${n}</span>${statusChip(a.st)}</div>` +
+      `<div class="meta-line">${fmtT(lap.t)}${lap.pos ? " · P" + lap.pos : ""} · ${esc(lap.comp || "")}, tyre age ${lap.life ?? "—"} laps</div>` +
+      `<div class="eyebrow">Model risk read</div>` +
+      a.issues.map(i =>
+        `<div class="issue"><div class="head">${sevChip(i.sev)}<span class="sys-tag">${esc(i.sys)}</span>` +
+        `<span class="tf">resolve <b>${esc(i.tf)}</b></span></div>` +
+        `<div class="desc">${esc(i.d)}</div><div class="rec">→ ${esc(i.rec)}</div></div>`).join("") +
+      (c.mode ? `<div class="eyebrow coach-eyebrow">Coaching · ${c.mode === "maintain" ? "hold P1 vs own first lap" : "chase " + esc(c.cmp || "")}</div>` +
+        `<div class="gap">${esc(c.gap || "")}</div>` +
+        `<ul>${(c.sugg || []).map(s => `<li>${esc(s)}</li>`).join("")}</ul>` : "") +
+      `<div class="agree">Rule-based labeler says <b>${esc(a.ruleSt)}</b> for this lap — ` +
+      (a.ruleSt === a.st ? "model agrees." : "model disagrees; review which read you trust.") + `</div>`;
+    for (const k in markers) markers[k].setAttribute("opacity", +k === n ? 1 : 0.75);
+  }
+
+  // ---- issue feed with severity filter ----
+  const feedItems = [];
+  for (const n of analyzed) for (const i of AN[n].issues) feedItems.push({ n, ...i });
+  let filter = "all";
+  const FILTERS = [["all", "All"], ["critical", "Critical"], ["warning", "Warning"], ["low", "Low"]];
+  const fBox = document.getElementById("filters");
+  fBox.innerHTML = FILTERS.map(([k, lbl]) => {
+    const count = k === "all" ? feedItems.length : feedItems.filter(i => i.sev === k).length;
+    return `<button data-f="${k}" aria-pressed="${k === filter}">${lbl} (${count})</button>`;
+  }).join("");
+  fBox.addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    filter = b.dataset.f;
+    fBox.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+    renderFeed();
+  });
+  function renderFeed() {
+    const items = feedItems.filter(i => filter === "all" || i.sev === filter);
+    document.getElementById("feed").innerHTML = items.length ? items.map(i =>
+      `<div class="issue"><div class="head"><span class="lapref">Lap ${i.n}</span>${sevChip(i.sev)}` +
+      `<span class="sys-tag">${esc(i.sys)}</span><span class="tf">resolve <b>${esc(i.tf)}</b></span></div>` +
+      `<div class="desc">${esc(i.d)}</div><div class="rec">→ ${esc(i.rec)}</div></div>`).join("")
+      : `<div class="empty">No ${filter} issues flagged in this race.</div>`;
+  }
+  renderFeed();
+
+  // ---- table view (accessibility twin) ----
+  document.getElementById("tbl").innerHTML =
+    `<table><thead><tr><th>Lap</th><th class="num">Time</th><th class="num">Pos</th><th>Tyre</th>` +
+    `<th>Status</th><th class="num">Issues</th><th>Top issue</th><th>Coaching gap</th></tr></thead><tbody>` +
+    analyzed.map(n => {
+      const lap = LAPS.find(l => l.n === n), a = AN[n];
+      const top = a.issues[0];
+      return `<tr><td>${n}</td><td class="num">${fmtT(lap.t)}</td><td class="num">${lap.pos ? "P" + lap.pos : "—"}</td>` +
+        `<td>${esc(lap.comp || "")} (${lap.life ?? "—"})</td><td>${statusChip(a.st)}</td>` +
+        `<td class="num">${a.issues.length}</td><td>${top ? esc(top.d) : "—"}</td>` +
+        `<td>${esc((a.coach || {}).gap || "—")}</td></tr>`;
+    }).join("") + `</tbody></table>`;
+
+  document.getElementById("foot").textContent =
+    `Generated from FastF1 race data · risk + coaching produced per lap by ${M.model} on Spur · ` +
+    `rule-based labels shown for cross-checking, not as ground truth of the race.`;
+
+  // default selection: first critical, else first warning, else first analyzed
+  const firstOf = st => analyzed.find(n => AN[n].st === st);
+  select(firstOf("critical") ?? firstOf("warning") ?? analyzed[0]);
+})();
+</script>
+
+</body>
+</html>

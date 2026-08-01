@@ -1,0 +1,17 @@
+# Secrets — never commit
+.env
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Data & caches (FastF1 cache can be GBs)
+data/cache/
+data/processed/
+data/finetune/
+eval/results/
+
+# OS
+Thumbs.db
+.DS_Store

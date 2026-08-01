@@ -1,0 +1,13 @@
+[project]
+name = "build-with-gemma"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.141.1",
+    "fastf1>=3.8.3",
+    "openai>=2.52.0",
+    "pydantic-settings>=2.14.2",
+    "uvicorn[standard]>=0.52.0",
+]
