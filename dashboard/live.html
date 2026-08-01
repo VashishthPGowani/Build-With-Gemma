@@ -89,11 +89,6 @@
   .replay .r-label { font-size: 13px; color: var(--ink-2); margin-bottom: 6px; }
   .replay input[type=range] { width: 100%; accent-color: var(--red-btn); }
   .replay-actions { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; align-items: stretch; }
-  .analyze-btn { flex: 1; min-width: 240px; font: inherit; font-weight: 700; font-size: 14px;
-                 color: #fff; background: var(--red-btn); border: none; border-radius: 8px;
-                 padding: 12px 18px; cursor: pointer; }
-  .analyze-btn:hover { filter: brightness(1.08); }
-  .analyze-btn[disabled] { opacity: 0.55; cursor: default; }
   .await-chip { flex: 1; min-width: 200px; display: flex; align-items: center;
                 border-radius: 8px; padding: 12px 18px; font-size: 14px;
                 background: var(--blue-soft); color: var(--blue-ink); }
@@ -228,7 +223,6 @@
       <input type="range" id="lap-slider" min="1" max="1" value="1" step="1"
              aria-label="Select a lap to review">
       <div class="replay-actions">
-        <button class="analyze-btn" id="analyze-btn" type="button">🔮 Analyze current lap with Gemma</button>
         <div class="await-chip" id="analyze-chip" hidden></div>
         <button class="live-btn" id="live-btn" type="button" aria-pressed="true">🔴 LIVE</button>
       </div>
@@ -416,7 +410,6 @@
   // ---- view state ----
   let SELECTED = null, lastSig = "", lastState = null;
   const view = { live: true, lap: 1 };
-  const requested = new Set();
 
   function signals(car, upto) {
     const laps = upto ? car.laps.filter(l => l.n <= upto) : car.laps;
@@ -617,22 +610,15 @@
       view.live ? `LIVE (lap ${maxLap})` : `lap ${view.lap} of ${maxLap}`;
     document.getElementById("live-btn").setAttribute("aria-pressed", view.live);
 
-    // analyze button / chip
-    const aBtn = document.getElementById("analyze-btn");
+    // analysis status chip
     const aChip = document.getElementById("analyze-chip");
-    const key = SELECTED + ":" + view.lap;
+    aChip.hidden = false;
     if (viewAn) {
-      aBtn.hidden = true; aChip.hidden = false;
       aChip.textContent = `Lap ${view.lap} analyzed — verdict ${viewAn.st.toUpperCase()}`;
-    } else if (requested.has(key)) {
-      aBtn.hidden = true; aChip.hidden = false;
-      aChip.textContent = "Awaiting analysis…";
     } else if (viewLapRec && !viewLapRec.clean) {
-      aBtn.hidden = true; aChip.hidden = false;
       aChip.textContent = `Lap ${view.lap} not analyzable (pit / neutralized)`;
     } else {
-      aBtn.hidden = false; aChip.hidden = true;
-      aBtn.textContent = `🔮 Analyze lap ${view.lap} of ${SELECTED} with Gemma`;
+      aChip.textContent = `Awaiting analysis for lap ${view.lap}`;
     }
 
     // stats
@@ -781,25 +767,6 @@
   document.getElementById("live-btn").addEventListener("click", () => {
     view.live = true; lastSig = ""; tick();
   });
-  document.getElementById("analyze-btn").addEventListener("click", async () => {
-    const key = SELECTED + ":" + view.lap;
-    requested.add(key);
-    if (lastState) render(lastState);
-    try {
-      const r = await fetch("/api/analyze", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ driver: SELECTED, lap_number: view.lap }),
-      });
-      if (!r.ok) {
-        requested.delete(key);
-        const chip = document.getElementById("analyze-chip");
-        chip.hidden = false; document.getElementById("analyze-btn").hidden = true;
-        chip.textContent = (await r.json()).detail || "Analysis request failed.";
-      }
-    } catch { requested.delete(key); }
-    lastSig = "";
-  });
-
   async function tick() {
     let S;
     try { S = await (await fetch("/api/state")).json(); } catch { return; }

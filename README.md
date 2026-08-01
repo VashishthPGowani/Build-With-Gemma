@@ -61,8 +61,8 @@ analyzes every car live with Gemma (featured car every clean lap, others every
 `--analyze-every` laps) against the *evolving* field benchmark, and the page
 polls `GET /api/state` every 2s. `--interval` changes the lap cadence;
 `--session`/`--featured` pick any fetched race and car. `POST /api/analyze`
-runs any skipped car/lap on demand (the page's replay slider uses it), and the
-same `POST /api/laps` endpoint accepts real (non-replay) telemetry unchanged.
+runs any skipped car/lap on demand, and the same `POST /api/laps` endpoint
+accepts real (non-replay) telemetry unchanged.
 
 **Voice assistant:** `POST /api/ask` `{"question": "...", "history": []}` →
 `{"answer", "grounded_on"}` — a radio-style answer grounded ONLY in the live

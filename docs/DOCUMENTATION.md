@@ -21,7 +21,7 @@ Telemetry arrives once per lap, per car. Every incoming lap runs through:
 | **3 · Maintain coaching** | For the car in P1: what to keep doing to stay there | the leader's **own first clean lap** |
 | **4 · Voice assistant** | Radio-style Q&A grounded *only* in the results of steps 1–3; the browser speaks the answer aloud | live session state |
 
-Steps 1–3 run automatically for **every car in the field** (featured car every clean lap, others on a staggered cadence), and any skipped lap can be analyzed on demand from the UI.
+Steps 1–3 run automatically for **every car in the field** (featured car every clean lap, others on a staggered cadence); any skipped lap can be requested via `POST /api/analyze`.
 
 ## 2. Architecture
 
@@ -98,7 +98,7 @@ uv run main.py                     # server on http://127.0.0.1:8000
 uv run scripts/replay_race.py      # replays 2025 British GP, 1 lap / 20 s
 ```
 
-Open **http://127.0.0.1:8000**: the race unfolds live — lap counter, running order (click any car), tyre-diagram + gauges, Gemma verdict markers landing on the lap trace, pinned act-now issues, recommended action with ranked strategies, and the radio box (type a question; the answer is grounded and spoken). Drag the replay slider to any lap and hit **Analyze with Gemma** for laps the cadence skipped.
+Open **http://127.0.0.1:8000**: the race unfolds live — lap counter, running order (click any car), tyre-diagram + gauges, Gemma verdict markers landing on the lap trace, pinned act-now issues, recommended action with ranked strategies, and the radio box (type a question; the answer is grounded and spoken). Drag the replay slider to review any earlier lap's analysis and state.
 
 Offline artifacts: `uv run scripts/run_baseline.py` reproduces the eval table; `uv run scripts/analyze_race.py --all` + `uv run scripts/build_dashboard.py --all` generate the static per-driver review dashboards (`dashboard/*_index.html`).
 
@@ -117,7 +117,7 @@ Offline artifacts: `uv run scripts/run_baseline.py` reproduces the eval table; `
 
 - Gaps between cars are lap-time pace deltas, not cumulative race gaps.
 - Telemetry is timing-derived; no engine temps or brake data (stated in the UI).
-- Non-featured cars are auto-analyzed on a sampled cadence (fully configurable; any lap is one click away).
+- Non-featured cars are auto-analyzed on a sampled cadence (fully configurable; any lap is available via `POST /api/analyze`).
 - Strategy ranking (HOLD/PUSH/CONSERVE/PIT NOW) blends Gemma's per-lap verdicts with deterministic tyre/pace signals — transparent and reproducible rather than a black box.
 - Hosted fine-tuning was blocked by the provider; the training dataset and submission tooling are ready for when compute is available.
 
